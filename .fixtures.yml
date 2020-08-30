@@ -3,4 +3,26 @@
 ---
 fixtures:
   forge_modules:
-#     stdlib: "puppetlabs/stdlib"
+    concat:
+      repo: puppetlabs/concat
+      ref: 6.2.0
+    gitlab:
+      repo: puppet/gitlab
+      ref: 5.1.0
+    postgresql:
+      repo: puppetlabs/postgresql
+      ref: 6.6.0
+    selinux:
+      repo: puppet/selinux
+      ref: 3.2.0
+    stdlib:
+      repo: puppetlabs/stdlib
+      ref: 6.3.0
+    tlsinfo:
+      repo: aursu/tlsinfo
+  repositories:
+    lsys:
+      repo: https://github.com/aursu/puppet-lsys.git
+    nginx:
+      repo: https://github.com/aursu/puppet-nginx.git
+      ref: tags/v1.1.1-rc0.7

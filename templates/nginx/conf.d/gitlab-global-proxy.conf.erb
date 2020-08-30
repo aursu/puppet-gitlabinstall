@@ -1,0 +1,24 @@
+<%-
+def bool2config(b)
+    case b
+    when true
+        'on'
+    when false, nil
+        'off'
+    else
+        b.to_s
+    end
+end
+-%>
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+<% if @options.include?('proxy_cache') -%>
+proxy_cache <%= @options['proxy_cache'] %>;
+<% end -%>
+<% if @options.include?('proxy_cache_path') -%>
+    <%- @options['proxy_cache_path'].sort_by{|k, v| k}.each do |path, parameters| -%>
+proxy_cache_path <%= path %><% parameters.each do |name, value| %> <%= name %>=<%= bool2config(value) %><% end %>;
+    <%- end -%>
+<% end -%>

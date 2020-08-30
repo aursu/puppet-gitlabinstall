@@ -1,0 +1,9 @@
+---
+:backends: yaml
+:yaml:
+  :datadir: spec/fixtures/hiera/hieradata
+:hierarchy:
+- hosts/%{::hostname}
+- envs/%{stype}
+- common
+:logger: console

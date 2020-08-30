@@ -1,0 +1,7 @@
+  if ($http_host = "") {
+    set $http_host_with_default "<%= @server_name %>";
+  }
+
+  if ($http_host != "") {
+    set $http_host_with_default $http_host;
+  }

@@ -1,6 +1,6 @@
 {
   "name": "aursu-gitlabinstall",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "aursu",
   "summary": "Dedicated GitLab installation",
   "license": "Apache-2.0",
@@ -8,29 +8,34 @@
   "project_page": "https://github.com/aursu/puppet-gitlabinstall",
   "issues_url": "https://github.com/aursu/puppet-gitlabinstall/issues",
   "dependencies": [
-
+    {
+      "name": "puppet/gitlab",
+      "version_requirement": ">= 5.1.0 < 6.0.0"
+    },
+    {
+      "name": "aursu/lsys",
+      "version_requirement": ">= 0.5.1 < 1.0.0"
+    },
+    {
+      "name": "puppet/nginx",
+      "version_requirement": ">= 1.0.0 < 2.0.0"
+    },
+    {
+      "name": "puppetlabs/postgresql",
+      "version_requirement": ">= 6.6.0 < 7.0.0"
+    },
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 4.1.0 < 7.0.0"
+    },
+    {
+      "name": "aursu/tlsinfo",
+      "version_requirement": ">= 0.3.5 < 1.0.0"
+    }
   ],
   "operatingsystem_support": [
     {
       "operatingsystem": "CentOS",
-      "operatingsystemrelease": [
-        "7"
-      ]
-    },
-    {
-      "operatingsystem": "OracleLinux",
-      "operatingsystemrelease": [
-        "7"
-      ]
-    },
-    {
-      "operatingsystem": "RedHat",
-      "operatingsystemrelease": [
-        "8"
-      ]
-    },
-    {
-      "operatingsystem": "Scientific",
       "operatingsystemrelease": [
         "7"
       ]
