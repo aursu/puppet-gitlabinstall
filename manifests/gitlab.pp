@@ -58,7 +58,7 @@
 # @param ssl_cert
 #   Content of x509 certificate to use for GitLab TLS setup
 #
-# @parma ssl_key
+# @param ssl_key
 #   Content of RSA private key to use for GitLab TLS setup
 #
 class gitlabinstall::gitlab (
