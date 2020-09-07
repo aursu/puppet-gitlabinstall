@@ -12,7 +12,7 @@ describe 'gitlabinstall::ssl' do
 
   on_supported_os.each do |os, os_facts|
     context "on #{os}" do
-    let(:facts) { os_facts.merge(stype: 'gitlab') }
+      let(:facts) { os_facts.merge(stype: 'gitlab') }
       let(:params) do
         {
           server_name: 'ci.domain.tld',
