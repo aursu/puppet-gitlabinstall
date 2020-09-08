@@ -328,9 +328,10 @@ class gitlabinstall::gitlab (
 
     # GitLab backup could be broken due to missed folder
     file { $registry_path:
-      ensure => directory,
-      owner  => 'git',
-      group  => 'git',
+      ensure  => directory,
+      owner   => 'git',
+      group   => 'git',
+      require => Package['gitlab-omnibus']
     }
   }
   else {
