@@ -387,6 +387,23 @@ class gitlabinstall::gitlab (
     mode => '0600',
   }
 
+  # small cleanup in case of preceding manual uninstallation
+  # to avoid https://docs.gitlab.com/omnibus/common_installation_problems/#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run
+  if $upstream_edition in ['ce', 'ee'] and $service_name == 'gitlab-runsvdir' {
+    $package_name = 'gitlab-omnibus'
+
+    [ '/usr/lib/systemd/system/gitlab-runsvdir.service',
+      '/etc/systemd/system/basic.target.wants/gitlab-runsvdir.service'].each |$unit| {
+      exec { "rm -f ${unit}":
+        refreshonly => true,
+        onlyif      => "test -f ${unit}",
+        subscribe   => Package[$package_name],
+        before      => Exec['gitlab_reconfigure'],
+        path        => '/bin:/usr/bin',
+      }
+    }
+  }
+
   # mount points for GitLab distro & data files
   if $mnt_distro {
     exec { '/usr/bin/mkdir -p /opt/gitlab':

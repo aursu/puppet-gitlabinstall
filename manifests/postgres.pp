@@ -27,4 +27,10 @@ class gitlabinstall::postgres (
     database  => $database_name,
     require   => Postgresql::Server::Db[$database_name],
   }
+
+  postgresql::server::extension { "${database_name}-btree_gist":
+    extension => 'btree_gist',
+    database  => $database_name,
+    require   => Postgresql::Server::Db[$database_name],
+  }
 }
