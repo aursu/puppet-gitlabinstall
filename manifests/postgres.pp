@@ -28,6 +28,7 @@ class gitlabinstall::postgres (
     require   => Postgresql::Server::Db[$database_name],
   }
 
+  # GitLab 13.2.0 relies on the `btree_gist` extension for PostgreSQL
   postgresql::server::extension { "${database_name}-btree_gist":
     extension => 'btree_gist',
     database  => $database_name,
