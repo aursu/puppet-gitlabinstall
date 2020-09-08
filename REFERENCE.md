@@ -284,6 +284,14 @@ Content of RSA private key to use for GitLab TLS setup
 
 Default value: ``undef``
 
+##### `repo_sslverify`
+
+Data type: `Optional[Integer[0,1]]`
+
+Set `sslverify` flag for Omnibus GitLab Yum repository
+
+Default value: ``undef``
+
 ##### `database_password`
 
 Data type: `String[8]`

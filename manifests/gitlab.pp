@@ -61,6 +61,9 @@
 # @param ssl_key
 #   Content of RSA private key to use for GitLab TLS setup
 #
+# @param repo_sslverify
+#   Set `sslverify` flag for Omnibus GitLab Yum repository
+#
 class gitlabinstall::gitlab (
   Stdlib::HTTPUrl
             $external_url                = $gitlabinstall::external_url,
@@ -127,6 +130,8 @@ class gitlabinstall::gitlab (
 
   Optional[Stdlib::Unixpath]
             $packages_storage_path       = $gitlabinstall::params::packages_storage_path,
+  Optional[Integer[0,1]]
+          $repo_sslverify                = undef,
 )  inherits gitlabinstall::params
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
@@ -367,6 +372,18 @@ class gitlabinstall::gitlab (
     gitlab_workhorse             => $gitlab_workhorse,
     prometheus_monitoring_enable => $prometheus_monitoring_enable,
     sidekiq                      => $sidekiq,
+  }
+
+  $repo_name = "gitlab_official_${upstream_edition}"
+
+  if $repo_sslverify {
+    Yumrepo <| title == $repo_name |> {
+      sslverify => $repo_sslverify,
+    }
+  }
+
+  file { "/etc/yum.repos.d/${repo_name}.repo":
+    mode => '0600',
   }
 
   # mount points for GitLab distro & data files
