@@ -12,6 +12,9 @@ fixtures:
     postgresql:
       repo: puppetlabs/postgresql
       ref: 6.6.0
+    puppet:
+      repo: aursu/puppet
+      ref: 0.1.5
     selinux:
       repo: puppet/selinux
       ref: 3.2.0

@@ -25,6 +25,10 @@
       "version_requirement": ">= 6.6.0 < 7.0.0"
     },
     {
+      "name": "aursu/puppet",
+      "version_requirement": ">= 0.1.5 < 1.0.0"
+    },
+    {
       "name": "puppet/selinux",
       "version_requirement": ">= 3.0.0 < 4.0.0"
     },
