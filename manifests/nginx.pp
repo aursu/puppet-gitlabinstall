@@ -14,8 +14,13 @@
 #   could be applied only if Nginx core is managed not here (so `manage_service`
 #   is false)
 #
+# @param monitoring_whitelist
+#   GitLab provides liveness and readiness probes to indicate service health.
+#   To access monitoring resources, the requesting client IP needs to be
+#   included in a whitelist.
+#   See https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html
+#
 class gitlabinstall::nginx (
-  String  $server_name,
   Boolean $manage_service        = $gitlabinstall::manage_nginx_core,
   Boolean $global_proxy_settings = true,
   String  $daemon_user           = $gitlabinstall::params::user,
@@ -30,8 +35,23 @@ class gitlabinstall::nginx (
   Optional[String]
           $ssl_key_path          = undef,
   Boolean $manage_document_root  = false,
+  Array[Stdlib::IP::Address]
+          $monitoring_whitelist  = $gitlabinstall::monitoring_whitelist,
 ) inherits gitlabinstall::params
 {
+  $external_url = $gitlabinstall::external_url
+  $server_name  = $gitlabinstall::server_name
+
+  # Relative URL  extracted from External URL
+  # '' for GitLab External URL 'http://gitlab.domain.tld' or 'http://gitlab.domain.tld/'
+  # '/folder' for GitLab External URL 'http://gitlab.domain.tld/folder' or 'http://gitlab.domain.tld/folder/any'
+  $relative_url = $gitlabinstall::relative_url
+
+  # URL path extracted from External URL
+  # '/' for GitLab External URL 'http://gitlab.domain.tld' or 'http://gitlab.domain.tld/'
+  # '/folder' for GitLab External URL 'http://gitlab.domain.tld/folder' or 'http://gitlab.domain.tld/folder/any'
+  $server_path  = $gitlabinstall::server_path
+
   $nginx_log_directory     = $gitlabinstall::params::nginx_log_directory
   $nginx_proxy_cache       = $gitlabinstall::params::nginx_proxy_cache
   $nginx_proxy_cache_path  = $gitlabinstall::params::nginx_proxy_cache_path
@@ -96,12 +116,13 @@ class gitlabinstall::nginx (
   }
 
   # Override global gzip settings
+  $gzip = true
   $gzip_static = true
   $gzip_comp_level = 2
   $gzip_http_version = '1.1'
   $gzip_vary = true
   $gzip_disable = 'msie6'
-  $gzip_min_length = 10240
+  $gzip_min_length = 250
   $gzip_proxied = ['no-cache', 'no-store', 'private', 'expired', 'auth']
   $gzip_types = [
       'text/plain',
@@ -111,7 +132,7 @@ class gitlabinstall::nginx (
       'application/x-javascript',
       'application/json',
       'application/xml',
-      'application/rss+xml'
+      'application/xml+rss'
   ]
 
   # https://github.com/gitlabhq/gitlabhq/issues/694
@@ -126,7 +147,8 @@ class gitlabinstall::nginx (
       'X-Forwarded-For $proxy_add_x_forwarded_for',
       'Upgrade $http_upgrade',
       'Connection $connection_upgrade',
-      'X-Forwarded-Proto $scheme'
+      'X-Forwarded-Proto $scheme',
+      'X-Forwarded-Ssl on'
   ]
 
   # if SSL enabled - use SSL only
@@ -135,6 +157,57 @@ class gitlabinstall::nginx (
   }
   else {
       $listen_port = 80
+  }
+
+  $locations_git = {
+    '~ (.git/git-receive-pack$|.git/gitlab-lfs/objects|.git/info/lfs/objects/batch$)' => {
+        proxy_request_buffering => 'off',
+    },
+  }
+
+  if $monitoring_whitelist[0] {
+    # https://docs.gitlab.com/ee/user/admin_area/monitoring/health_check.html
+    $locations_health = {
+      '/error.txt' => {
+        proxy  => undef,
+        return => "500 'nginx returned \$status when communicating with gitlab-workhorse\n'",
+      },
+      '/error.json' => {
+        proxy  => undef,
+        return => "500 '{\"error\":\"nginx returned \$status when communicating with gitlab-workhorse\",\"status\":\$status}\n'",
+      },
+      "= ${relative_url}/-/health" => {
+        error_pages => {
+          '404 500 502' => '/error.txt',
+        }
+      },
+      "= ${relative_url}/-/readiness" => {
+        error_pages => {
+          '404 500 502' => '/error.json',
+        }
+      },
+      "= ${relative_url}/-/liveness" => {
+        error_pages => {
+          '404 500 502' => '/error.json',
+        }
+      },
+    }
+  }
+  else {
+    $locations_health = {}
+  }
+
+  $locations_default = {
+    $server_path                         => {
+    },
+    "${relative_url}/assets"             => {
+        proxy_cache => 'gitlab',
+    },
+    '~ ^/(404|500|502)(-custom)?\.html$' => {
+        internal => true,
+        proxy    => undef,
+        www_root => '/opt/gitlab/embedded/service/gitlab-rails/public',
+    },
   }
 
   # setup GitLab nginx main config
@@ -172,28 +245,17 @@ class gitlabinstall::nginx (
         template('nginx/conf.d/gzip.conf.erb'),
         template('nginx/conf.d/proxy.conf.erb'),
     ],
-    locations                 => {
-        '~ (\.git/gitlab-lfs/objects|\.git/info/lfs/objects/batch$)' => {
-            proxy_request_buffering => 'off',
-        },
-        '/'                                                          => {
-        },
-        '/assets'                                                    => {
-            proxy_cache => 'gitlab',
-        },
-        '~ ^/(404|422|500|502)(-custom)?\.html$'                     => {
-            internal => true,
-            proxy    => undef,
-            www_root => '/opt/gitlab/embedded/service/gitlab-rails/public',
-        },
-    },
+
+    locations                 => $locations_git +
+                                $locations_health +
+                                $locations_default,
+
     locations_defaults        => {
         proxy       => 'http://gitlab-workhorse',
         proxy_cache => 'off',
     },
     error_pages               => {
         404 => '/404.html',
-        422 => '/422.html',
         500 => '/500.html',
         502 => '/502.html',
     },
