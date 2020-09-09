@@ -5,10 +5,6 @@
 # @example
 #   include gitlabinstall::gitlab
 #
-# @param external_url
-#   Configuring the external URL for GitLab
-#   see [Configuring the external URL for GitLab](https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab)
-#
 # @param gitlab_package_ensure
 #   RPM package version. For example, 13.3.2-ce.0.el7 (see https://packages.gitlab.com/gitlab/gitlab-ce)
 #
@@ -64,9 +60,13 @@
 # @param repo_sslverify
 #   Set `sslverify` flag for Omnibus GitLab Yum repository
 #
+# @param monitoring_whitelist
+#   GitLab provides liveness and readiness probes to indicate service health.
+#   To access monitoring resources, the requesting client IP needs to be
+#   included in a whitelist.
+#   See https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html
+#
 class gitlabinstall::gitlab (
-  Stdlib::HTTPUrl
-            $external_url                = $gitlabinstall::external_url,
   String[8] $database_password           = $gitlabinstall::database_password,
 
   String    $gitlab_package_ensure       = $gitlabinstall::gitlab_package_ensure,
@@ -131,7 +131,9 @@ class gitlabinstall::gitlab (
   Optional[Stdlib::Unixpath]
             $packages_storage_path       = $gitlabinstall::params::packages_storage_path,
   Optional[Integer[0,1]]
-          $repo_sslverify                = undef,
+            $repo_sslverify              = undef,
+  Array[Stdlib::IP::Address]
+            $monitoring_whitelist        = $gitlabinstall::monitoring_whitelist,
 )  inherits gitlabinstall::params
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
@@ -144,15 +146,8 @@ class gitlabinstall::gitlab (
   $user_home        = $gitlabinstall::params::user_home
   $user_shell       = $gitlabinstall::params::user_shell
 
-  # extract GitLab hostname from its sexternal_url (see Omnibus installation
-  # manual for external_url description)
-  $urldata = split($external_url, '/')
-  if $urldata[0] in ['http:', 'https:', ''] and $urldata[1] == '' {
-    $server_name = $urldata[2]
-  }
-  else {
-    $server_name = $urldata[0]
-  }
+  $external_url = $gitlabinstall::external_url
+  $server_name  = $gitlabinstall::server_name
 
   $gitlab_package_ensure_data = split($gitlab_package_ensure, '-')
   $gitlab_version = $gitlab_package_ensure_data[0]
@@ -202,7 +197,6 @@ class gitlabinstall::gitlab (
   if $non_bundled_web_server {
     class { 'gitlabinstall::nginx':
       manage_service => $manage_nginx_core,
-      server_name    => $server_name,
       ssl            => true,
       ssl_cert_path  => $ssl_cert_path,
       ssl_key_path   => $ssl_key_path,
@@ -351,6 +345,15 @@ class gitlabinstall::gitlab (
     $gitlab_rails_packages = {}
   }
 
+  if $monitoring_whitelist[0] {
+    $gitlab_rails_monitoring_whitelist = {
+      'monitoring_whitelist' => $monitoring_whitelist,
+    }
+  }
+  else {
+    $gitlab_rails_monitoring_whitelist = {}
+  }
+
   file { $log_dir:
     ensure => directory,
   }
@@ -364,7 +367,8 @@ class gitlabinstall::gitlab (
     postgresql                   => $postgresql,
     gitlab_rails                 => $gitlab_rails +
                                     $gitlab_rails_registry +
-                                    $gitlab_rails_packages,
+                                    $gitlab_rails_packages +
+                                    $gitlab_rails_monitoring_whitelist,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,
     web_server                   => $web_server,
