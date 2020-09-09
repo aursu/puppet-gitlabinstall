@@ -49,7 +49,6 @@
 #   Registry API URL Gitlab should connect to
 #
 class gitlabinstall (
-
   String  $gitlab_package_ensure       = '13.0.10-ce.0.el7',
   Stdlib::HTTPUrl
           $external_url                = 'http://localhost',
@@ -70,6 +69,28 @@ class gitlabinstall (
           $registry_api_url            = 'http://localhost:5000',
   Optional[String]
           $database_password           = undef,
+  Array[Stdlib::IP::Address]
+          $monitoring_whitelist        = [],
 )
 {
+  # extract GitLab hostname from its sexternal_url (see Omnibus installation
+  # manual for external_url description)
+  $urldata = split($external_url, '/')
+  if $urldata[0] in ['http:', 'https:', ''] and $urldata[1] == '' {
+    $server_name = $urldata[2]
+    $subfolder = $urldata[3]
+  }
+  else {
+    $server_name = $urldata[0]
+    $subfolder = $urldata[1]
+  }
+
+  if $subfolder == '' or $subfolder == undef {
+    $relative_url = ''
+    $server_path = '/'
+  }
+  else {
+    $relative_url = "/${subfolder}"
+    $server_path = "/${subfolder}"
+  }
 }

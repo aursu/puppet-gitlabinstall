@@ -5,7 +5,7 @@ require 'spec_helper'
 describe 'gitlabinstall::gitlab' do
   let(:pre_condition) do
     <<-PRECOND
-    include gitlabinstall
+    class { 'gitlabinstall': external_url => 'https://ci.domain.tld' }
     tlsinfo::certificate { 'f1453246': }
     PRECOND
   end
@@ -15,7 +15,6 @@ describe 'gitlabinstall::gitlab' do
       let(:facts) { os_facts.merge(stype: 'gitlab') }
       let(:params) do
         {
-          external_url: 'https://ci.domain.tld',
           database_password: 'MySecretPassword',
         }
       end
