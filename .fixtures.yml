@@ -26,3 +26,6 @@ fixtures:
     nginx:
       repo: https://github.com/aursu/puppet-nginx.git
       ref: tags/v1.1.1-rc0.7
+    yumrepo_core:
+      repo: https://github.com/puppetlabs/puppetlabs-yumrepo_core.git
+      puppet_version: ">= 6.0.0"
