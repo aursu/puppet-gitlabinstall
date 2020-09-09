@@ -147,6 +147,14 @@ Data type: `Variant[Stdlib::Fqdn, Stdlib::IP::Address]`
 
 Default value: `'localhost'`
 
+##### `monitoring_whitelist`
+
+Data type: `Array[Stdlib::IP::Address]`
+
+
+
+Default value: `[]`
+
 ### `gitlabinstall::gitlab`
 
 GitLab installation management
@@ -162,15 +170,6 @@ include gitlabinstall::gitlab
 #### Parameters
 
 The following parameters are available in the `gitlabinstall::gitlab` class.
-
-##### `external_url`
-
-Data type: `Stdlib::HTTPUrl`
-
-Configuring the external URL for GitLab
-see [Configuring the external URL for GitLab](https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab)
-
-Default value: `$gitlabinstall::external_url`
 
 ##### `gitlab_package_ensure`
 
@@ -291,6 +290,17 @@ Data type: `Optional[Integer[0,1]]`
 Set `sslverify` flag for Omnibus GitLab Yum repository
 
 Default value: ``undef``
+
+##### `monitoring_whitelist`
+
+Data type: `Array[Stdlib::IP::Address]`
+
+GitLab provides liveness and readiness probes to indicate service health.
+To access monitoring resources, the requesting client IP needs to be
+included in a whitelist.
+See https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html
+
+Default value: `$gitlabinstall::monitoring_whitelist`
 
 ##### `database_password`
 
@@ -471,11 +481,16 @@ is false)
 
 Default value: ``true``
 
-##### `server_name`
+##### `monitoring_whitelist`
 
-Data type: `String`
+Data type: `Array[Stdlib::IP::Address]`
 
+GitLab provides liveness and readiness probes to indicate service health.
+To access monitoring resources, the requesting client IP needs to be
+included in a whitelist.
+See https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html
 
+Default value: `$gitlabinstall::monitoring_whitelist`
 
 ##### `daemon_user`
 
