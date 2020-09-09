@@ -29,3 +29,14 @@ Added dependency of registry default path on gitlab package
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.1.1
+
+**Features**
+
+**Bugfixes**
+
+* Added ability to setup Nginx logging directory for GitLab if Nginx core is not
+under module management
+
+**Known Issues**

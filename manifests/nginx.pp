@@ -14,6 +14,11 @@
 #   could be applied only if Nginx core is managed not here (so `manage_service`
 #   is false)
 #
+# @param manage_log_directory
+#   Whether to create own log directory for GitLab or not. This directory
+#   could be managed only if Nginx core is managed not here (so `manage_service`
+#   is false)
+#
 # @param monitoring_whitelist
 #   GitLab provides liveness and readiness probes to indicate service health.
 #   To access monitoring resources, the requesting client IP needs to be
@@ -23,6 +28,7 @@
 class gitlabinstall::nginx (
   Boolean $manage_service        = $gitlabinstall::manage_nginx_core,
   Boolean $global_proxy_settings = true,
+  Boolean $manage_log_directory  = true,
   String  $daemon_user           = $gitlabinstall::params::user,
   Integer $daemon_user_id        = $gitlabinstall::params::user_id,
   String  $daemon_group          = $gitlabinstall::params::group,
@@ -89,6 +95,31 @@ class gitlabinstall::nginx (
           proxy_cache_path => $nginx_proxy_cache_path,
         }
       }
+    }
+
+    if $manage_log_directory {
+      file { $nginx_log_directory:
+        ensure  => directory,
+        group   => $daemon_group,
+        owner   => $daemon_user,
+        seltype => 'httpd_log_t',
+        recurse => true,
+      }
+
+      if $facts['selinux'] {
+        selinux::fcontext { "${nginx_log_directory}(/.*)?":
+          filetype => 'f',
+          seltype  => 'httpd_log_t',
+          require  => File[$nginx_log_directory],
+          alias    => $nginx_log_directory,
+        }
+
+        selinux::exec_restorecon { $nginx_log_directory:
+          subscribe => Selinux::Fcontext[$nginx_log_directory]
+        }
+      }
+
+      File[$nginx_log_directory] -> Nginx::Resource::Server['gitlab-http']
     }
   }
 

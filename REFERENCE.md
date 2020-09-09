@@ -481,6 +481,16 @@ is false)
 
 Default value: ``true``
 
+##### `manage_log_directory`
+
+Data type: `Boolean`
+
+Whether to create own log directory for GitLab or not. This directory
+could be managed only if Nginx core is managed not here (so `manage_service`
+is false)
+
+Default value: ``true``
+
 ##### `monitoring_whitelist`
 
 Data type: `Array[Stdlib::IP::Address]`
