@@ -64,9 +64,10 @@ mod 'lsys',
 Main class for GitLab installation is `gitlabinstall::gitlab`:
 
 ```
-class { 'gitlabinstall': }
-class { 'gitlabinstall::gitlab':
+class { 'gitlabinstall':
   external_url          => 'https://gitlab.domain.tld',
+}
+class { 'gitlabinstall::gitlab':
   database_password     => 'secret',
   gitlab_package_ensure => '13.3.5-ce.0.el7',
 }
@@ -77,8 +78,10 @@ class { 'gitlabinstall::gitlab':
 Use it with registry installed on separate host and on the same host as PuppetDB:
 
 ```
+  class { 'gitlabinstall':
+    external_url          => 'https://gitlab.domain.tld',
+  }
   class { 'gitlabinstall::gitlab':
-    external_url              => 'https://gitlab.domain.tld',
     cert_identity             => '*.domain.tld',
     # DevCI has PuppetDB which listen on 8080, PuppetDB could be used
     # externally but not GitLab Unicorn
@@ -94,8 +97,10 @@ Use it with registry installed on separate host and on the same host as PuppetDB
 Use it with registry on the same host:
 
 ```
+  class { 'gitlabinstall':
+    external_url          => 'https://gitlab.domain.tld',
+  }
   class { 'gitlabinstall::gitlab':
-    external_url              => 'https://gitlab.domain.tld',
     cert_identity             => '*.domain.tld',
     external_registry_service => true,
     registry_host             => 'registry.domain.tld',
