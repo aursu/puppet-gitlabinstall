@@ -53,26 +53,32 @@ class gitlabinstall::params {
 
     # https://docs.gitlab.com/ee/administration/packages/container_registry.html#container-registry-storage-path
     $registry_path = '/var/opt/gitlab/gitlab-rails/shared/registry'
+    $registry_dir  = '/var/opt/gitlab/registry'
 
     # Registry TLS auth key
+    $registry_cert_path = "${registry_dir}/gitlab-registry.crt"
     $registry_key_path = '/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key'
 
     if $facts['puppet_sslpaths'] {
       $privatekeydir = $facts['puppet_sslpaths']['privatekeydir']['path']
+      $certdir       = $facts['puppet_sslpaths']['certdir']['path']
     }
     else {
       # fallback to predefined
       $privatekeydir = '/etc/puppetlabs/puppet/ssl/private_keys'
+      $certdir       = '/etc/puppetlabs/puppet/ssl/certs'
     }
 
     if $facts['clientcert'] {
-      $hostprivkey   = "${privatekeydir}/${clientcert}.pem"
+      $certname = $facts['clientcert']
     }
     else {
       # fallback to fqdn
-      $fqdn          = $facts['fqdn']
-      $hostprivkey   = "${privatekeydir}/${fqdn}.pem"
+      $certname = $facts['fqdn']
     }
+
+    $hostprivkey = "${privatekeydir}/${certname}.pem"
+    $hostcert    = "${certdir}/${certname}.pem"
 
     # https://docs.gitlab.com/ee/administration/packages/index.html#changing-the-local-storage-path
     $packages_storage_path = '/var/opt/gitlab/gitlab-rails/shared/packages'

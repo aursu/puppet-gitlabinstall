@@ -248,7 +248,38 @@ populated with the content specified by `internal_key`, each time reconfigure
 is executed. If no file is specified, Omnibus GitLab will default it to
 `/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key` and will populate it.
 
+Default value: `$gitlabinstall::params::registry_key_path`
+
+##### `registry_internal_certificate`
+
+Data type: `Optional[String]`
+
+Contents of the certificate that GitLab uses to sign the tokens. This
+parameter allows to setup custom certificate into file system path
+(`registry_cert_path`) or export to Puppet DB. It will not influence on
+GitLab configuration (there is no support to embedded registry configuration
+in this moodule)
+
 Default value: ``undef``
+
+##### `registry_cert_path`
+
+Data type: `Optional[Stdlib::Unixpath]`
+
+This is the path where `registry_internal_certificate` contents will be
+written to disk.
+default certificate location is /var/opt/gitlab/registry/gitlab-registry.crt
+
+Default value: `$gitlabinstall::params::registry_cert_path`
+
+##### `registry_cert_export`
+
+Data type: `Boolean`
+
+Whether to write certificate content intoo local file system or export it to
+Puppet DB
+
+Default value: ``true``
 
 ##### `packages_enabled`
 

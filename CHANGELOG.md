@@ -40,3 +40,13 @@ Added dependency of registry default path on gitlab package
 under module management
 
 **Known Issues**
+
+## Release 1.1.2
+
+**Features**
+
+* Added ability to export certificate that GitLab uses to sign the tokens
+
+**Bugfixes**
+
+**Known Issues**
