@@ -312,6 +312,7 @@ class gitlabinstall::gitlab (
       registry_cert_export          => $registry_cert_export,
       registry_internal_certificate => $registry_internal_certificate,
       registry_cert_path            => $registry_cert_path,
+      gitlab_host                   => $server_name,
     }
 
     if $registry_internal_key {

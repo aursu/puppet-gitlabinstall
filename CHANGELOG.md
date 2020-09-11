@@ -60,3 +60,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.1.4
+
+**Features**
+
+* Added ability to separate GitLab hostname and server name
+
+**Bugfixes**
+
+**Known Issues**
