@@ -306,22 +306,29 @@ class gitlabinstall::gitlab (
       fail('You must supply registry_host parameter to gitlabinstall::gitlab')
     }
 
-    class { 'dockerinstall::registry::gitlab':
-      registry_internal_key         => $registry_internal_key,
-      registry_key_path             => $registry_key_path,
-      registry_cert_export          => $registry_cert_export,
-      registry_internal_certificate => $registry_internal_certificate,
-      registry_cert_path            => $registry_cert_path,
-      gitlab_host                   => $server_name,
-    }
-
     if $registry_internal_key {
+      file { 'internal_key':
+        path    => $registry_key_path,
+        content => $registry_internal_key,
+      }
+
       $gitlab_registry = {
         'internal_key' => $registry_internal_key,
       }
     }
     else {
+      file { 'internal_key':
+        path   => $registry_key_path,
+        source => "file://${hostprivkey}",
+      }
+
       $gitlab_registry = {}
+    }
+
+    class { 'dockerinstall::registry::gitlab':
+      registry_cert_export          => $registry_cert_export,
+      registry_internal_certificate => $registry_internal_certificate,
+      gitlab_host                   => $server_name,
     }
 
     # GitLab backup could be broken due to missed folder
@@ -352,6 +359,7 @@ class gitlabinstall::gitlab (
     }
 
     Class['gitlab'] -> Class['dockerinstall::registry::gitlab']
+    Class['gitlab'] -> File['internal_key']
   }
   else {
     $gitlab_registry = {}

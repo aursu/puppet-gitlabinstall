@@ -70,3 +70,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.1.5
+
+**Features**
+
+* Return registry `internal_key` management back into gitlabinstall
+
+**Bugfixes**
+
+**Known Issues**

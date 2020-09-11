@@ -119,14 +119,15 @@ describe 'gitlabinstall::gitlab' do
         let(:params) do
           super().merge(
             'external_registry_service' => true,
-            'registry_host'             => 'ci.domain.tld',
+            'registry_host'             => 'gitlab.domain.tld',
           )
         end
 
         it { is_expected.to compile }
 
         it {
-          is_expected.to contain_file('/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key')
+          is_expected.to contain_file('internal_key')
+            .with_path('/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key')
             .with_source('file:///etc/puppetlabs/puppet/ssl/private_keys/gitlab.domain.tld.pem')
             .that_requires('Class[gitlab]')
         }
