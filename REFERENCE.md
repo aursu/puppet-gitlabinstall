@@ -270,7 +270,7 @@ This is the path where `registry_internal_certificate` contents will be
 written to disk.
 default certificate location is /var/opt/gitlab/registry/gitlab-registry.crt
 
-Default value: `$gitlabinstall::params::registry_cert_path`
+Default value: ``undef``
 
 ##### `registry_cert_export`
 

@@ -50,3 +50,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.1.3
+
+**Features**
+
+* Revised/reworked auth configuration
+
+**Bugfixes**
+
+**Known Issues**
