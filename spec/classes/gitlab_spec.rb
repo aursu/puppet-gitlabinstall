@@ -133,7 +133,7 @@ describe 'gitlabinstall::gitlab' do
 
         it {
           expect(exported_resources).to contain_file('registry_rootcertbundle')
-            .with_path('/var/opt/gitlab/registry/gitlab-registry.crt')
+            .with_path('/etc/docker/registry/tokenbundle.pem')
             .with_content(puppet_sslcert['hostcert']['data'])
             .with_tag('gitlab.domain.tld')
         }

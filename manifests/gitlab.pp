@@ -128,15 +128,15 @@ class gitlabinstall::gitlab (
   # See https://docs.gitlab.com/omnibus/architecture/registry/#configuring-registry
   # gitlab_rails['registry_key_path'] = "/custom/path/to/registry-key.key"
   Optional[Stdlib::Unixpath]
-            $registry_key_path           = $gitlabinstall::params::registry_key_path,
+            $registry_key_path             = $gitlabinstall::params::registry_key_path,
   # registry['internal_key'] = "---BEGIN RSA PRIVATE KEY---\nMIIEpQIBAA\n"
   Optional[String]
-            $registry_internal_key       = undef,
+            $registry_internal_key         = undef,
 
   Optional[String]
             $registry_internal_certificate = undef,
   Optional[Stdlib::Unixpath]
-            $registry_cert_path            = $gitlabinstall::params::registry_cert_path,
+            $registry_cert_path            = undef,
 
   Boolean   $registry_cert_export          = true,
 
@@ -306,42 +306,21 @@ class gitlabinstall::gitlab (
       fail('You must supply registry_host parameter to gitlabinstall::gitlab')
     }
 
-    if $registry_internal_key {
-      file { $registry_key_path:
-        content => $registry_internal_key,
-        require => Class['gitlab'],
-      }
+    class { 'dockerinstall::registry::gitlab':
+      registry_internal_key         => $registry_internal_key,
+      registry_key_path             => $registry_key_path,
+      registry_cert_export          => $registry_cert_export,
+      registry_internal_certificate => $registry_internal_certificate,
+      registry_cert_path            => $registry_cert_path,
+    }
 
+    if $registry_internal_key {
       $gitlab_registry = {
         'internal_key' => $registry_internal_key,
       }
     }
     else {
-      file { $registry_key_path:
-        source  => "file://${hostprivkey}",
-        require => Class['gitlab'],
-      }
-
       $gitlab_registry = {}
-    }
-
-    $registry_cert_content = $registry_internal_certificate ? {
-      String  => $registry_internal_certificate,
-      default => $facts['puppet_sslcert']['hostcert']['data'],
-    }
-
-    if $registry_cert_export {
-      @@file { 'registry_rootcertbundle':
-        path    => $registry_cert_path,
-        content => $registry_cert_content,
-        tag     => $certname,
-      }
-    }
-    else {
-      file { $registry_cert_path:
-        content => $registry_cert_content,
-        require => Class['gitlab'],
-      }
     }
 
     # GitLab backup could be broken due to missed folder
@@ -370,6 +349,8 @@ class gitlabinstall::gitlab (
       'registry_issuer'   => 'omnibus-gitlab-issuer',
       'registry_key_path' => $registry_key_path,
     }
+
+    Class['gitlab'] -> Class['dockerinstall::registry::gitlab']
   }
   else {
     $gitlab_registry = {}

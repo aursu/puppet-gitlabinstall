@@ -24,6 +24,9 @@ fixtures:
     tlsinfo:
       repo: aursu/tlsinfo
   repositories:
+    dockerinstall:
+      repo: https://github.com/aursu/puppet-dockerinstall.git
+      ref: tags/v0.5.0
     lsys:
       repo: https://github.com/aursu/puppet-lsys.git
       ref: tags/v0.5.3
