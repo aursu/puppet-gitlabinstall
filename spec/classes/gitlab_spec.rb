@@ -135,7 +135,7 @@ describe 'gitlabinstall::gitlab' do
           expect(exported_resources).to contain_file('registry_rootcertbundle')
             .with_path('/etc/docker/registry/tokenbundle.pem')
             .with_content(puppet_sslcert['hostcert']['data'])
-            .with_tag('gitlab.domain.tld')
+            .with_tag('ci.domain.tld')
         }
       end
     end
