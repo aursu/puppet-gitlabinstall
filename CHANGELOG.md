@@ -91,3 +91,13 @@ under module management
 
 **Known Issues**
 
+## Release 1.2.1
+
+**Features**
+
+* Added additional LDAP settings
+
+**Bugfixes**
+
+**Known Issues**
+

@@ -64,6 +64,20 @@
 #   LDAP attribute for username. Should be the attribute, not the value that
 #   maps to the `uid`.
 #
+# @param user_filter
+#   Filter LDAP users. Format: RFC 4515
+#
+# @param name
+#   LDAP attribute for user display name. If no full name could be found at the
+#   attribute specified for `name`, the full name is determined using the
+#   attributes specified for `first_name` and `last_name`.
+#
+# @param first_name
+#   LDAP attribute for user first name.
+#
+# @param last_name
+#   LDAP attribute for user last name.
+#
 class gitlabinstall::ldap (
   String  $base                          = $gitlabinstall::ldap_base,
   String  $password                      = $gitlabinstall::ldap_password,
@@ -83,6 +97,14 @@ class gitlabinstall::ldap (
           $bind_dn                       = undef,
   Optional[String]
           $group_base                    = undef,
+  Optional[String]
+          $user_filter                   = undef,
+  Optional[String]
+          $name                          = undef,
+  Optional[String]
+          $first_name                    = undef,
+  Optional[String]
+          $last_name                     = undef,
 )
 {
   $main_group_base = $group_base ? {
@@ -92,6 +114,26 @@ class gitlabinstall::ldap (
 
   $main_bind_dn = $bind_dn ? {
     String => { 'bind_dn' => $bind_dn },
+    default => {}
+  }
+
+  $main_user_filter = $user_filter ? {
+    String => { 'user_filter' => $user_filter },
+    default => {}
+  }
+
+  $main_name = $name ? {
+    String => { 'name' => $name },
+    default => {}
+  }
+
+  $main_first_name = $first_name ? {
+    String => { 'first_name' => $first_name },
+    default => {}
+  }
+
+  $main_last_name = $last_name ? {
+    String => { 'last_name' => $last_name },
     default => {}
   }
 
@@ -108,9 +150,15 @@ class gitlabinstall::ldap (
         'encryption'                    => $encryption,
         'password'                      => $password,
         'port'                          => $port,
+        'uid'                           => $uid,
+        ''
       } +
       $main_bind_dn +
-      $main_group_base
+      $main_group_base +
+      $main_user_filter +
+      $main_name +
+      $main_first_name +
+      $main_last_name
     }
   }
 }
