@@ -80,3 +80,14 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.2.0
+
+**Features**
+
+* Added ability to setup LDAP settings
+
+**Bugfixes**
+
+**Known Issues**
+

@@ -1,6 +1,6 @@
 {
   "name": "aursu-gitlabinstall",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "author": "aursu",
   "summary": "Dedicated GitLab installation",
   "license": "Apache-2.0",
@@ -10,7 +10,7 @@
   "dependencies": [
     {
       "name": "aursu/dockerinstall",
-      "version_requirement": ">= 0.6.3 < 1.0.0"
+      "version_requirement": ">= 0.6.4 < 1.0.0"
     },
     {
       "name": "puppet/gitlab",

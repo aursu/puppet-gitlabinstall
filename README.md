@@ -59,6 +59,17 @@ mod 'lsys',
   :tag => 'v0.5.1'
 ```
 
+Also requires non-published on Puppet Forge module `aursu::dockerinstall` which is set
+of different Docker related features
+
+Puppetfile setup:
+
+```
+mod 'dockerinstall',
+  :git => 'https://github.com/aursu/puppet-dockerinstall.git',
+  :tag => 'v0.6.4'
+```
+
 ### Beginning with gitlabinstall
 
 Main class for GitLab installation is `gitlabinstall::gitlab`:
@@ -74,6 +85,8 @@ class { 'gitlabinstall::gitlab':
 ```
 
 ## Usage
+
+### External container registry integration
 
 Use it with registry installed on separate host and on the same host as PuppetDB:
 
@@ -104,6 +117,46 @@ Use it with registry on the same host:
     cert_identity             => '*.domain.tld',
     external_registry_service => true,
     registry_host             => 'registry.domain.tld',
+  }
+```
+
+### LDAP settings
+
+Basic setup:
+
+```
+  class { 'gitlabinstall':
+    external_url          => 'https://gitlab.domain.tld',
+    ldap_enabled          => true,
+    ldap_host             => 'ldap.mydomain.com',
+    ldap_password         => 'secret',
+    ldap_base             => 'ou=people,dc=gitlab,dc=example',
+  }
+  class { 'gitlabinstall::gitlab':
+    cert_identity             => '*.domain.tld',
+    external_registry_service => true,
+    registry_host             => 'registry.domain.tld',
+  }
+```
+
+With more LDAP settings:
+
+```
+  class { 'gitlabinstall':
+    external_url          => 'https://gitlab.domain.tld',
+  }
+  class { 'gitlabinstall::ldap':
+    host                  => 'ldap.mydomain.com',
+    password              => 'secret',
+    base                  => 'ou=people,dc=gitlab,dc=example',
+
+    bind_dn               => 'CN=Gitlab,OU=Users,DC=domain,DC=com',
+  }
+  class { 'gitlabinstall::gitlab':
+    cert_identity             => '*.domain.tld',
+    external_registry_service => true,
+    registry_host             => 'registry.domain.tld',
+    ldap_enabled              => true,
   }
 ```
 

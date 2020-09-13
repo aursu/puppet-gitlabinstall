@@ -158,6 +158,7 @@ class gitlabinstall::gitlab (
             $repo_sslverify              = undef,
   Array[Stdlib::IP::Address]
             $monitoring_whitelist        = $gitlabinstall::monitoring_whitelist,
+  Boolean   $ldap_enabled                = $gitlabinstall::ldap_enabled,
 )  inherits gitlabinstall::params
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
@@ -387,6 +388,15 @@ class gitlabinstall::gitlab (
     $gitlab_rails_monitoring_whitelist = {}
   }
 
+  if $ldap_enabled {
+    include gitlabinstall::ldap
+
+    $gitlab_rails_ldap = $gitlabinstall::ldap::gitlab_rails
+  }
+  else {
+    $gitlab_rails_ldap = {}
+  }
+
   file { $log_dir:
     ensure => directory,
   }
@@ -401,7 +411,8 @@ class gitlabinstall::gitlab (
     gitlab_rails                 => $gitlab_rails +
                                     $gitlab_rails_registry +
                                     $gitlab_rails_packages +
-                                    $gitlab_rails_monitoring_whitelist,
+                                    $gitlab_rails_monitoring_whitelist +
+                                    $gitlab_rails_ldap,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,
     web_server                   => $web_server,

@@ -139,6 +139,24 @@ describe 'gitlabinstall::gitlab' do
             .with_tag('ci.domain.tld')
         }
       end
+
+      context 'with LDAP settings' do
+        let(:pre_condition) do
+          <<-PRECOND
+          class { 'gitlabinstall':
+            external_url  => 'https://ci.domain.tld',
+            ldap_enabled  => true,
+            ldap_host     => 'ldap.mydomain.com',
+            ldap_password => 'secret',
+            ldap_base     => 'ou=people,dc=gitlab,dc=example',
+          }
+
+          tlsinfo::certificate { 'f1453246': }
+          PRECOND
+        end
+
+        it { is_expected.to compile }
+      end
     end
   end
 end

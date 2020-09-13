@@ -48,6 +48,18 @@
 # @param registry_api_url
 #   Registry API URL Gitlab should connect to
 #
+# @param ldap_enabled
+#   Whether to enable LDAP settings or not
+#
+# @param ldap_base
+#   LDAP base where we can search for users.
+#
+# @param ldap_password
+#   The password of the LDAP bind user.
+#
+# @param ldap_host
+#   IP address or domain name of your LDAP server.
+#
 class gitlabinstall (
   String  $gitlab_package_ensure       = '13.0.10-ce.0.el7',
   Stdlib::HTTPUrl
@@ -71,6 +83,13 @@ class gitlabinstall (
           $database_password           = undef,
   Array[Stdlib::IP::Address]
           $monitoring_whitelist        = [],
+  Boolean $ldap_enabled                = false,
+  Optional[String]
+          $ldap_base                   = undef,
+  Optional[String]
+          $ldap_password               = undef,
+  Optional[String]
+          $ldap_host                   = undef,
 )
 {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation
