@@ -67,7 +67,7 @@
 # @param user_filter
 #   Filter LDAP users. Format: RFC 4515
 #
-# @param name
+# @param full_name
 #   LDAP attribute for user display name. If no full name could be found at the
 #   attribute specified for `name`, the full name is determined using the
 #   attributes specified for `first_name` and `last_name`.
@@ -77,6 +77,9 @@
 #
 # @param last_name
 #   LDAP attribute for user last name.
+#
+# @param email
+#   LDAP attribute for user email.
 #
 class gitlabinstall::ldap (
   String  $base                          = $gitlabinstall::ldap_base,
@@ -100,11 +103,13 @@ class gitlabinstall::ldap (
   Optional[String]
           $user_filter                   = undef,
   Optional[String]
-          $name                          = undef,
+          $full_name                     = undef,
   Optional[String]
           $first_name                    = undef,
   Optional[String]
           $last_name                     = undef,
+  Optional[String]
+          $email                         = undef,
 )
 {
   $main_group_base = $group_base ? {
@@ -122,8 +127,8 @@ class gitlabinstall::ldap (
     default => {}
   }
 
-  $main_name = $name ? {
-    String => { 'name' => $name },
+  $main_full_name = $full_name ? {
+    String => { 'name' => $full_name },
     default => {}
   }
 
@@ -134,6 +139,11 @@ class gitlabinstall::ldap (
 
   $main_last_name = $last_name ? {
     String => { 'last_name' => $last_name },
+    default => {}
+  }
+
+  $main_email = $email ? {
+    String => { 'email' => $email },
     default => {}
   }
 
@@ -151,14 +161,14 @@ class gitlabinstall::ldap (
         'password'                      => $password,
         'port'                          => $port,
         'uid'                           => $uid,
-        ''
       } +
       $main_bind_dn +
       $main_group_base +
       $main_user_filter +
-      $main_name +
+      $main_full_name +
       $main_first_name +
-      $main_last_name
+      $main_last_name +
+      $main_email
     }
   }
 }
