@@ -92,81 +92,21 @@ OsAB
   },
 }
 
-describe 'gitlabinstall::gitlab' do
-  let(:pre_condition) do
-    <<-PRECOND
-    class { 'gitlabinstall': external_url => 'https://ci.domain.tld' }
-    tlsinfo::certificate { 'f1453246': }
-    PRECOND
-  end
+describe 'gitlabinstall::external_registry' do
+  let(:pre_condition) { 'include gitlabinstall' }
 
   on_supported_os.each do |os, os_facts|
     os_facts[:puppet_sslcert] = puppet_sslcert
-    os_facts[:os]['selinux'] = { 'enabled' => true }
-    os_facts[:clientcert] = 'gitlab.domain.tld'
 
     context "on #{os}" do
-      let(:facts) { os_facts.merge(stype: 'gitlab') }
+      let(:facts) { os_facts }
       let(:params) do
         {
-          database_password: 'MySecretPassword',
+          registry_host: 'registry.domain.tld',
         }
       end
 
       it { is_expected.to compile }
-
-      context 'with remote container registry' do
-        let(:pre_condition) do
-          <<-PRECOND
-          class { 'gitlabinstall':
-            external_url  => 'https://ci.domain.tld',
-            registry_host => 'gitlab.domain.tld',
-          }
-
-          tlsinfo::certificate { 'f1453246': }
-          PRECOND
-        end
-
-        let(:params) do
-          super().merge(
-            'external_registry_service' => true,
-          )
-        end
-
-        it { is_expected.to compile }
-
-        it {
-          is_expected.to contain_file('internal_key')
-            .with_path('/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key')
-            .with_source('file:///etc/puppetlabs/puppet/ssl/private_keys/gitlab.domain.tld.pem')
-            .that_requires('Class[gitlab]')
-        }
-
-        it {
-          expect(exported_resources).to contain_file('registry_rootcertbundle')
-            .with_path('/etc/docker/registry/tokenbundle.pem')
-            .with_content(puppet_sslcert['hostcert']['data'])
-            .with_tag('ci.domain.tld')
-        }
-      end
-
-      context 'with LDAP settings' do
-        let(:pre_condition) do
-          <<-PRECOND
-          class { 'gitlabinstall':
-            external_url  => 'https://ci.domain.tld',
-            ldap_enabled  => true,
-            ldap_host     => 'ldap.mydomain.com',
-            ldap_password => 'secret',
-            ldap_base     => 'ou=people,dc=gitlab,dc=example',
-          }
-
-          tlsinfo::certificate { 'f1453246': }
-          PRECOND
-        end
-
-        it { is_expected.to compile }
-      end
     end
   end
 end

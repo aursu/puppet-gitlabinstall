@@ -15,51 +15,6 @@
 #   Using a non-packaged PostgreSQL database management server
 #   see [Using a non-packaged PostgreSQL database management server](https://docs.gitlab.com/omnibus/settings/database.html#using-a-non-packaged-postgresql-database-management-server)
 #
-# @param registry_api_url
-#   This is the Registry URL used internally that users do not need to interact with
-#   it is gitlab_rails['registry_api_url'] setting in /etc/gitlab/gitlab.rb
-#
-# @param registry_host
-#   Registry endpoint without the scheme, the address that gets shown to the end user.
-#   it is gitlab_rails['registry_host'] setting in /etc/gitlab/gitlab.rb
-#
-# @param registry_port
-#   Registry endpoint port, visible to the end user
-#   it is gitlab_rails['registry_port'] setting in /etc/gitlab/gitlab.rb
-#
-# @param registry_internal_key
-#   Contents of the key that GitLab uses to sign the tokens.
-#   It is registry['internal_key'] setting in /etc/gitlab/gitlab.rb
-#   A certificate-key pair is required for GitLab and the external container
-#   registry to communicate securely. You will need to create a certificate-key
-#   pair, configuring the external container registry with the public certificate
-#   and configuring GitLab with the private key
-#
-# @param registry_key_path
-#   Path to the key that matches the certificate on the Registry side.
-#   It is gitlab_rails['registry_key_path'] setting in /etc/gitlab/gitlab.rb
-#   Custom file for Omnibus GitLab to write the contents of
-#   registry['internal_key'] to. The file specified at `registry_key_path` gets
-#   populated with the content specified by `internal_key`, each time reconfigure
-#   is executed. If no file is specified, Omnibus GitLab will default it to
-#   `/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key` and will populate it.
-#
-# @param registry_internal_certificate
-#   Contents of the certificate that GitLab uses to sign the tokens. This
-#   parameter allows to setup custom certificate into file system path
-#   (`registry_cert_path`) or export to Puppet DB. It will not influence on
-#   GitLab configuration (there is no support to embedded registry configuration
-#   in this moodule)
-#
-# @param registry_cert_path
-#   This is the path where `registry_internal_certificate` contents will be
-#   written to disk.
-#   default certificate location is /var/opt/gitlab/registry/gitlab-registry.crt
-#
-# @param registry_cert_export
-#   Whether to write certificate content intoo local file system or export it to
-#   Puppet DB
-#
 # @param packages_enabled
 #   Enabling the Packages feature
 #   see [GitLab Package Registry administration](https://docs.gitlab.com/ee/administration/packages/)
@@ -115,30 +70,6 @@ class gitlabinstall::gitlab (
   # External Registry (https://docs.gitlab.com/ce/administration/container_registry.html#disable-container-registry-but-use-gitlab-as-an-auth-endpoint)
   # See https://docs.gitlab.com/omnibus/architecture/registry/
   Boolean   $external_registry_service   = $gitlabinstall::external_registry_service,
-  # gitlab_rails['registry_host']
-  Optional[Stdlib::Fqdn]
-            $registry_host               = $gitlabinstall::registry_host,
-  # gitlab_rails['registry_port']
-  Integer   $registry_port               = $gitlabinstall::registry_port,
-  # gitlab_rails['registry_api_url']
-  Stdlib::HTTPUrl
-            $registry_api_url            = $gitlabinstall::registry_api_url,
-
-  # Token authentication to registry
-  # See https://docs.gitlab.com/omnibus/architecture/registry/#configuring-registry
-  # gitlab_rails['registry_key_path'] = "/custom/path/to/registry-key.key"
-  Optional[Stdlib::Unixpath]
-            $registry_key_path             = $gitlabinstall::params::registry_key_path,
-  # registry['internal_key'] = "---BEGIN RSA PRIVATE KEY---\nMIIEpQIBAA\n"
-  Optional[String]
-            $registry_internal_key         = undef,
-
-  Optional[String]
-            $registry_internal_certificate = undef,
-  Optional[Stdlib::Unixpath]
-            $registry_cert_path            = undef,
-
-  Boolean   $registry_cert_export          = true,
 
   # Mount points for GitLab (/dev)
   Optional[Stdlib::Unixpath]
@@ -163,7 +94,6 @@ class gitlabinstall::gitlab (
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
   $service_name     = $gitlabinstall::params::service_name
-  $hostprivkey      = $gitlabinstall::params::hostprivkey
   $user_id          = $gitlabinstall::params::user_id
   $user             = $gitlabinstall::params::user
   $group_id         = $gitlabinstall::params::group_id
@@ -172,8 +102,6 @@ class gitlabinstall::gitlab (
   $user_shell       = $gitlabinstall::params::user_shell
   $certname         = $gitlabinstall::params::certname
   $hostcert         = $gitlabinstall::params::hostcert
-  $registry_path    = $gitlabinstall::params::registry_path
-  $registry_dir     = $gitlabinstall::params::registry_dir
 
   $external_url = $gitlabinstall::external_url
   $server_name  = $gitlabinstall::server_name
@@ -300,72 +228,19 @@ class gitlabinstall::gitlab (
     }
   }
 
-  # Docker registry
-  # see https://docs.gitlab.com/ee/administration/packages/container_registry.html#use-an-external-container-registry-with-gitlab-as-an-auth-endpoint
   if $external_registry_service {
-    unless $registry_host {
-      fail('You must supply registry_host parameter to gitlabinstall::gitlab')
-    }
+    include gitlabinstall::external_registry
 
-    if $registry_internal_key {
-      file { 'internal_key':
-        path    => $registry_key_path,
-        content => $registry_internal_key,
-      }
+    $gitlab_registry       = $gitlabinstall::external_registry::gitlab_registry
+    $gitlab_rails_registry = $gitlabinstall::external_registry::gitlab_rails
 
-      $gitlab_registry = {
-        'internal_key' => $registry_internal_key,
-      }
-    }
-    else {
-      file { 'internal_key':
-        path   => $registry_key_path,
-        source => "file://${hostprivkey}",
-      }
-
-      $gitlab_registry = {}
-    }
-
-    class { 'dockerinstall::registry::gitlab':
-      registry_cert_export          => $registry_cert_export,
-      registry_internal_certificate => $registry_internal_certificate,
-      gitlab_host                   => $server_name,
-    }
-
-    # GitLab backup could be broken due to missed folder
-    file {
-      default:
-        ensure  => directory,
-        require => Package['gitlab-omnibus'],
-      ;
-      $registry_path:
-        owner => 'git',
-        group => 'git',
-      ;
-      $registry_dir:
-        owner => 'root',
-        group => 'root',
-      ;
-    }
-
-    $gitlab_rails_registry = {
-      'registry_enabled'  => true,
-      'registry_host'     => $registry_host,
-      'registry_port'     => $registry_port,
-      'registry_api_url'  => $registry_api_url,
-      # This setting needs to be set the same between Registry and GitLab.
-      # match to registry environment REGISTRY_AUTH_TOKEN_ISSUER
-      'registry_issuer'   => 'omnibus-gitlab-issuer',
-      'registry_key_path' => $registry_key_path,
-    }
-
-    Class['gitlab'] -> Class['dockerinstall::registry::gitlab']
-    Class['gitlab'] -> File['internal_key']
+    Class['gitlab'] -> Class['gitlabinstall::external_registry']
   }
   else {
     $gitlab_registry = {}
     $gitlab_rails_registry = {}
   }
+
 
   # Package Registry (Moved to GitLab Core in 13.3)
   # TODO: add storage management (directory path, mount)
