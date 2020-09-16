@@ -137,7 +137,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @content ||= self.class.token_content(target_path)
   end
 
-  def update_content
+  def generate_content
     @content = { 'token' => authorized_token.encoded }.to_json
   end
 
@@ -146,7 +146,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def create
-    update_content
+    generate_content
   end
 
   def audience=(aud)
@@ -168,7 +168,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   def flush
     return if @property_flush.empty?
 
-    update_content
+    generate_content
 
     @property_flush.clear
   end

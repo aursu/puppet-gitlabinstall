@@ -113,19 +113,23 @@ Puppet::Type.newtype(:registry_token) do
   newparam(:target) do
     desc 'File inside /etc/docker/registry directory where token should be stored'
 
-    defaultto do
-      'token.json'
-    end
+    defaultto 'token.json'
 
     newvalues(%r{^[a-z0-9.-]+$})
 
     munge do |value|
-      "#{value}.json" unless value =~ %r{\.json$}
+      return value if value =~ %r{\.json$}
+      "#{value}.json"
     end
   end
 
   def should_content
-    provider.token_content
+    content = provider.token_content
+    if content.empty?
+      provider.generate_content
+    else
+      content
+    end
   end
 
   def generate
