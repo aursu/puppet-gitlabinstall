@@ -123,6 +123,11 @@ Puppet::Type.newtype(:registry_token) do
     end
   end
 
+  autobefore(:file) do
+    target = self[:target]
+    "/etc/docker/registry/#{target}"
+  end
+
   # This will generate additional File[path] resource to setuo permissions
   # or delete token file
   def generate
