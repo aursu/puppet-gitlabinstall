@@ -135,7 +135,7 @@ Puppet::Type.newtype(:registry_token) do
       path: path,
       owner: 'root',
       group: 'root',
-      mode: 0o600,
+      mode: '0600',
     }
 
     metaparams = Puppet::Type.metaparams
