@@ -86,6 +86,8 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   rescue OpenSSL::PKey::RSAError => e
     Puppet.warning(_('Can not create RSA PKey object (%{message})') % { message: e.message })
     return []
+  rescue JWT::DecodeError
+    return []
   rescue SystemCallError # Errno::ENOENT
     return []
   end
