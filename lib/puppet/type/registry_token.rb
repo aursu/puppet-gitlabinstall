@@ -123,32 +123,31 @@ Puppet::Type.newtype(:registry_token) do
     end
   end
 
-  def should_content
-    content = provider.token_content
-    if content.empty?
-      provider.generate_content
-    else
-      content
-    end
-  end
-
+  # This will generate additional File[path] resource to setuo permissions
+  # or delete token file
   def generate
     target = self[:target]
     path = "/etc/docker/registry/#{target}"
 
-    file_opts = {
-      ensure: (self[:ensure] == :present) ? :file : :absent,
-      path: path,
-      owner: 'root',
-      group: 'root',
-      mode: '0600',
-      content: should_content,
-    }
+    file_opts = if self[:ensure] == :present
+                  {
+                    ensure: :file,
+                    path: path,
+                    owner: 'root',
+                    group: 'root',
+                    mode: '0600',
+                  }
+                else
+                  {
+                    ensure: :absent,
+                    path: path,
+                  }
+                end
 
     metaparams = Puppet::Type.metaparams
     excluded_metaparams = [:before, :notify, :require, :subscribe, :tag]
 
-    metaparams.reject! { |param| excluded_metaparams.include? param }
+    metaparams.reject! { |param| excluded_metaparams.include?(param) }
 
     metaparams.each do |metaparam|
       file_opts[metaparam] = self[metaparam] unless self[metaparam].nil?

@@ -57,34 +57,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @instances || []
   end
 
-  def self.prefetch(resources)
-    entities = instances
-    # rubocop:disable Lint/AssignmentInCondition
-    resources.keys.each do |entity_name|
-      if provider = entities.find { |entity| entity.name == entity_name }
-        resources[entity_name].provider = provider
-      end
-    end
-    # rubocop:enable Lint/AssignmentInCondition
-  end
-
-  def self.token_decrypt(token)
-    pkey = File.read(REGISTRY_KEY)
-    secret = OpenSSL::PKey::RSA.new(pkey).public_key
-
-    JWT.decode(token, secret, true, algorithm: 'RS256')
-  rescue OpenSSL::PKey::RSAError => e
-    Puppet.warning(_('Can not create RSA PKey object (%{message})') % { message: e.message })
-    return []
-  rescue SystemCallError # Errno::ENOENT
-    return []
-  end
-
-  def self.token_content(file_name)
-    return '' unless File.exist?(file_name)
-    File.read(file_name)
-  end
-
   def self.token_data(file_name)
     content = token_content(file_name)
     return {} if content.empty?
@@ -99,6 +71,34 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
     return {} if jwt.nil?
     jwt
+  end
+
+  def self.token_content(file_name)
+    return '' unless File.exist?(file_name)
+    File.read(file_name)
+  end
+
+  def self.token_decrypt(token)
+    pkey = File.read(REGISTRY_KEY)
+    secret = OpenSSL::PKey::RSA.new(pkey).public_key
+
+    JWT.decode(token, secret, true, algorithm: 'RS256')
+  rescue OpenSSL::PKey::RSAError => e
+    Puppet.warning(_('Can not create RSA PKey object (%{message})') % { message: e.message })
+    return []
+  rescue SystemCallError # Errno::ENOENT
+    return []
+  end
+
+  def self.prefetch(resources)
+    entities = instances
+    # rubocop:disable Lint/AssignmentInCondition
+    resources.keys.each do |entity_name|
+      if provider = entities.find { |entity| entity.name == entity_name }
+        resources[entity_name].provider = provider
+      end
+    end
+    # rubocop:enable Lint/AssignmentInCondition
   end
 
   def authorized_token
@@ -141,12 +141,21 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @content = { 'token' => authorized_token.encoded }.to_json
   end
 
+  def store_content
+    File.open(target_path, 'w') { |f| f.write(token_content) }
+  end
+
   def exists?
     @property_hash[:ensure] == :present
   end
 
+  def destroy
+    @property_hash[:ensure] = :absent
+  end
+
   def create
     generate_content
+    store_content
   end
 
   def audience=(aud)
@@ -169,6 +178,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     return if @property_flush.empty?
 
     generate_content
+    store_content
 
     @property_flush.clear
   end
