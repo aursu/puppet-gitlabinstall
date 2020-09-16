@@ -11,7 +11,7 @@ Puppet::Type.newtype(:registry_token) do
     validate do |value|
       # accept unix timestamp
       return true if value.to_s =~ %r{^[0-9]{10}$}
-      # raise ArgumentError if not time data could be found
+      # raise TypeError if not time data could be found
       Time.parse(value)
     end
 
@@ -98,18 +98,6 @@ Puppet::Type.newtype(:registry_token) do
     end
   end
 
-  newproperty(:expire_time, parent: TimeProperty) do
-    desc 'Token expiration time'
-
-    defaultto do
-      @resource[:issued_at].to_i + DEFAULT_EXPIRE_TIME
-    end
-
-    def retrieve
-      provider.token_data['exp'].to_i
-    end
-  end
-
   newproperty(:issued_at, parent: TimeProperty) do
     desc 'Time when token have been issued at'
 
@@ -131,6 +119,18 @@ Puppet::Type.newtype(:registry_token) do
 
     def retrieve
       provider.token_data['nbf'].to_i
+    end
+  end
+
+  newproperty(:expire_time, parent: TimeProperty) do
+    desc 'Token expiration time'
+
+    defaultto do
+      @resource[:issued_at].to_i + DEFAULT_EXPIRE_TIME
+    end
+
+    def retrieve
+      provider.token_data['exp'].to_i
     end
   end
 
