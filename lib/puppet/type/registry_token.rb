@@ -5,7 +5,7 @@ Puppet::Type.newtype(:registry_token) do
   @doc = 'Registry authentication JWT token'
 
   DEFAULT_NOT_BEFORE_TIME = 5
-  DEFAULT_EXPIRE_TIME = 60
+  DEFAULT_EXPIRE_TIME = 3600
 
   class TimeProperty < Puppet::Property
     validate do |value|
@@ -19,6 +19,10 @@ Puppet::Type.newtype(:registry_token) do
       return value.to_i if value.to_s =~ %r{^[0-9]{10}$}
       Time.parse(value).to_i
     end
+
+    def insync?(is)
+      provider.exp_insync?
+    end
   end
 
   ensurable do
@@ -28,7 +32,7 @@ Puppet::Type.newtype(:registry_token) do
       provider.create
     end
     newvalue(:absent) do
-      provider.delete
+      provider.destroy
     end
 
     defaultto :present
@@ -43,6 +47,26 @@ Puppet::Type.newtype(:registry_token) do
 
     defaultto do
       SecureRandom.uuid
+    end
+  end
+
+  newparam(:threshold) do
+    desc 'Validity threshold'
+
+    # acceptable expiration period is 10 minutes
+    defaultto 600
+
+    munge do |value|
+      case value
+      when String
+        Integer(value)
+      else
+        value
+      end
+    end
+
+    validate do |value|
+      raise ArgumentError, _("Threshold must be provided as a number.") unless value.to_s =~ %r{^\d+$}
     end
   end
 
@@ -74,6 +98,18 @@ Puppet::Type.newtype(:registry_token) do
     end
   end
 
+  newproperty(:expire_time, parent: TimeProperty) do
+    desc 'Token expiration time'
+
+    defaultto do
+      @resource[:issued_at].to_i + DEFAULT_EXPIRE_TIME
+    end
+
+    def retrieve
+      provider.token_data['exp'].to_i
+    end
+  end
+
   newproperty(:issued_at, parent: TimeProperty) do
     desc 'Time when token have been issued at'
 
@@ -95,18 +131,6 @@ Puppet::Type.newtype(:registry_token) do
 
     def retrieve
       provider.token_data['nbf'].to_i
-    end
-  end
-
-  newproperty(:expire_time, parent: TimeProperty) do
-    desc 'Token expiration time'
-
-    defaultto do
-      @resource[:issued_at].to_i + DEFAULT_EXPIRE_TIME
-    end
-
-    def retrieve
-      provider.token_data['exp'].to_i
     end
   end
 
@@ -165,10 +189,15 @@ Puppet::Type.newtype(:registry_token) do
     current     = Time.now.to_i
     not_before  = self[:not_before].to_i
     expire_time = self[:expire_time].to_i
+    threshold   = self[:threshold].to_i
     subject     = self[:subject]
 
-    if not_before >= expire_time || current >= expire_time
-      raise Puppet::Error, 'Token expiration time is incorrect'
+    if current + threshold > expire_time
+      raise Puppet::Error, 'Token expiration is too close. Please update'
+    end
+
+    if not_before >= expire_time
+      raise Puppet::Error, 'Token start time is incorrect'
     end
 
     raise Puppet::Error, 'Username must be provided' unless subject

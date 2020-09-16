@@ -151,6 +151,18 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @property_hash[:ensure] == :present
   end
 
+  def exp_insync?
+    is        = @property_hash[:expire_time]
+    threshold = @resource[:threshold].to_i
+
+    # not in sync if not set
+    return false if is.nil? || is.to_s == 'absent'
+
+    current = Time.now.to_i
+
+    return true if is - current >= threshold
+  end
+
   def destroy
     @property_hash[:ensure] = :absent
   end
