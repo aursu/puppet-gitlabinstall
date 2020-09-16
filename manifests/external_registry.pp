@@ -140,9 +140,11 @@ class gitlabinstall::external_registry (
     'registry_key_path' => $registry_key_path,
   }
 
-  package { 'jwt':
-    ensure   => 'installed',
-    provider => 'puppet_gem',
+  package {
+    ['jwt', 'base32']:
+      ensure   => 'installed',
+      provider => 'puppet_gem',
+    ;
   }
 
   registry_token { 'default':

@@ -113,7 +113,9 @@ Puppet::Type.newtype(:registry_token) do
   newparam(:target) do
     desc 'File inside /etc/docker/registry directory where token should be stored'
 
-    defaultto 'token.json'
+    defaultto do
+      'token.json'
+    end
 
     newvalues(%r{^[a-z0-9.-]+$})
 
