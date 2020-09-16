@@ -138,6 +138,7 @@ Puppet::Type.newtype(:registry_token) do
       owner: 'root',
       group: 'root',
       mode: '0600',
+      content: should_content,
     }
 
     metaparams = Puppet::Type.metaparams
@@ -150,19 +151,6 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     [Puppet::Type.type(:file).new(file_opts)]
-  end
-
-  def eval_generate
-    target = self[:target]
-    path = "/etc/docker/registry/#{target}"
-
-    content = should_content
-
-    if !content.nil? && !content.empty?
-      catalog.resource("File[#{path}]")[:content] = content
-    end
-
-    [catalog.resource("File[#{path}]")]
   end
 
   validate do
