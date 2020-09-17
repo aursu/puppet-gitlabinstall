@@ -50,6 +50,21 @@
 #   Whether to write certificate content intoo local file system or export it to
 #   Puppet DB
 #
+# @param token_username
+#   Username to use for default JWT auth token (as subject field). This token
+#   will be generated and stored into file `/etc/docker/registry/token.json`
+#   and available through custom fact `gitlab_auth_token`
+#
+# @param token_expire_time
+#   Expiration time for default JWT token. Could be unix timestamp or string
+#   representation of a time (which could be parsed by ruby function Time.parse)
+#   Default expiration time is
+#
+# @param token_expire_threshold
+#   Threshold for expiration time in seconds. If expiration time is less then
+#   current time plus threshold than Puppet will generate new auth token.
+#   Default threshold is 600 seconds
+#
 class gitlabinstall::external_registry (
   # gitlab_rails['registry_host']
   Stdlib::Fqdn
@@ -74,6 +89,8 @@ class gitlabinstall::external_registry (
   String  $token_username                = 'registry-bot',
   Optional[String]
           $token_expire_time             = undef,
+  Optional[Integer]
+          $token_expire_threshold        = undef,
 ) inherits gitlabinstall::params
 {
   # Docker registry
@@ -153,5 +170,6 @@ class gitlabinstall::external_registry (
     subject     => $token_username,
     issuer      => 'omnibus-gitlab-issuer',
     expire_time => $token_expire_time,
+    threshold   => $token_expire_threshold,
   }
 }
