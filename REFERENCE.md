@@ -7,12 +7,17 @@
 ### Classes
 
 * [`gitlabinstall`](#gitlabinstall): GitLab installation
+* [`gitlabinstall::external_registry`](#gitlabinstallexternal_registry): External registry integration into GitLab
 * [`gitlabinstall::gitlab`](#gitlabinstallgitlab): GitLab installation management
 * [`gitlabinstall::ldap`](#gitlabinstallldap): Setup LDAP settings for GitLab instance
 * [`gitlabinstall::nginx`](#gitlabinstallnginx): A short summary of the purpose of this class
 * [`gitlabinstall::params`](#gitlabinstallparams): Basic module settings
 * [`gitlabinstall::postgres`](#gitlabinstallpostgres): Install postgres database and pg_trgm extension
 * [`gitlabinstall::ssl`](#gitlabinstallssl): A short summary of the purpose of this class
+
+### Resource types
+
+* [`registry_token`](#registry_token): Registry authentication JWT token
 
 ## Classes
 
@@ -188,6 +193,133 @@ Data type: `Array[Stdlib::IP::Address]`
 
 Default value: `[]`
 
+### `gitlabinstall::external_registry`
+
+External registry integration into GitLab
+
+#### Examples
+
+##### 
+
+```puppet
+include gitlabinstall::external_registry
+```
+
+#### Parameters
+
+The following parameters are available in the `gitlabinstall::external_registry` class.
+
+##### `registry_host`
+
+Data type: `Stdlib::Fqdn`
+
+Registry endpoint without the scheme, the address that gets shown to the end user.
+it is gitlab_rails['registry_host'] setting in /etc/gitlab/gitlab.rb
+
+Default value: `$gitlabinstall::registry_host`
+
+##### `registry_api_url`
+
+Data type: `Stdlib::HTTPUrl`
+
+This is the Registry URL used internally that users do not need to interact with
+it is gitlab_rails['registry_api_url'] setting in /etc/gitlab/gitlab.rb
+
+Default value: `$gitlabinstall::registry_api_url`
+
+##### `registry_port`
+
+Data type: `Integer`
+
+Registry endpoint port, visible to the end user
+it is gitlab_rails['registry_port'] setting in /etc/gitlab/gitlab.rb
+
+Default value: `$gitlabinstall::registry_port`
+
+##### `registry_internal_key`
+
+Data type: `Optional[String]`
+
+Contents of the key that GitLab uses to sign the tokens.
+It is registry['internal_key'] setting in /etc/gitlab/gitlab.rb
+A certificate-key pair is required for GitLab and the external container
+registry to communicate securely. You will need to create a certificate-key
+pair, configuring the external container registry with the public certificate
+and configuring GitLab with the private key
+
+Default value: ``undef``
+
+##### `registry_key_path`
+
+Path to the key that matches the certificate on the Registry side.
+It is gitlab_rails['registry_key_path'] setting in /etc/gitlab/gitlab.rb
+Custom file for Omnibus GitLab to write the contents of
+registry['internal_key'] to. The file specified at `registry_key_path` gets
+populated with the content specified by `internal_key`, each time reconfigure
+is executed. If no file is specified, Omnibus GitLab will default it to
+`/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key` and will populate it.
+
+##### `registry_internal_certificate`
+
+Data type: `Optional[String]`
+
+Contents of the certificate that GitLab uses to sign the tokens. This
+parameter allows to setup custom certificate into file system path
+(`registry_cert_path`) or export to Puppet DB. It will not influence on
+GitLab configuration (there is no support to embedded registry configuration
+in this moodule)
+
+Default value: ``undef``
+
+##### `registry_cert_path`
+
+Data type: `Optional[Stdlib::Unixpath]`
+
+This is the path where `registry_internal_certificate` contents will be
+written to disk.
+default certificate location is /var/opt/gitlab/registry/gitlab-registry.crt
+
+Default value: ``undef``
+
+##### `registry_cert_export`
+
+Data type: `Boolean`
+
+Whether to write certificate content intoo local file system or export it to
+Puppet DB
+
+Default value: ``true``
+
+##### `token_username`
+
+Data type: `String`
+
+Username to use for default JWT auth token (as subject field). This token
+will be generated and stored into file `/etc/docker/registry/token.json`
+and available through custom fact `gitlab_auth_token`
+
+Default value: `'registry-bot'`
+
+##### `token_expire_time`
+
+Data type: `Optional[String]`
+
+Expiration time for default JWT token. Could be unix timestamp or string
+representation of a time (which could be parsed by ruby function Time.parse)
+Default expiration time is 3600 seconds after current time
+
+Default value: ``undef``
+
+##### `token_expire_threshold`
+
+Data type: `Optional[Integer]`
+
+Threshold for expiration time in seconds. If expiration time is less then
+current time plus threshold than Puppet will generate new auth token.
+Default threshold is 600 seconds
+
+Default value: ``undef``
+
 ### `gitlabinstall::gitlab`
 
 GitLab installation management
@@ -228,91 +360,6 @@ Using a non-packaged PostgreSQL database management server
 see [Using a non-packaged PostgreSQL database management server](https://docs.gitlab.com/omnibus/settings/database.html#using-a-non-packaged-postgresql-database-management-server)
 
 Default value: `$gitlabinstall::external_postgresql_service`
-
-##### `registry_api_url`
-
-Data type: `Stdlib::HTTPUrl`
-
-This is the Registry URL used internally that users do not need to interact with
-it is gitlab_rails['registry_api_url'] setting in /etc/gitlab/gitlab.rb
-
-Default value: `$gitlabinstall::registry_api_url`
-
-##### `registry_host`
-
-Data type: `Optional[Stdlib::Fqdn]`
-
-Registry endpoint without the scheme, the address that gets shown to the end user.
-it is gitlab_rails['registry_host'] setting in /etc/gitlab/gitlab.rb
-
-Default value: `$gitlabinstall::registry_host`
-
-##### `registry_port`
-
-Data type: `Integer`
-
-Registry endpoint port, visible to the end user
-it is gitlab_rails['registry_port'] setting in /etc/gitlab/gitlab.rb
-
-Default value: `$gitlabinstall::registry_port`
-
-##### `registry_internal_key`
-
-Data type: `Optional[String]`
-
-Contents of the key that GitLab uses to sign the tokens.
-It is registry['internal_key'] setting in /etc/gitlab/gitlab.rb
-A certificate-key pair is required for GitLab and the external container
-registry to communicate securely. You will need to create a certificate-key
-pair, configuring the external container registry with the public certificate
-and configuring GitLab with the private key
-
-Default value: ``undef``
-
-##### `registry_key_path`
-
-Data type: `Optional[Stdlib::Unixpath]`
-
-Path to the key that matches the certificate on the Registry side.
-It is gitlab_rails['registry_key_path'] setting in /etc/gitlab/gitlab.rb
-Custom file for Omnibus GitLab to write the contents of
-registry['internal_key'] to. The file specified at `registry_key_path` gets
-populated with the content specified by `internal_key`, each time reconfigure
-is executed. If no file is specified, Omnibus GitLab will default it to
-`/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key` and will populate it.
-
-Default value: `$gitlabinstall::params::registry_key_path`
-
-##### `registry_internal_certificate`
-
-Data type: `Optional[String]`
-
-Contents of the certificate that GitLab uses to sign the tokens. This
-parameter allows to setup custom certificate into file system path
-(`registry_cert_path`) or export to Puppet DB. It will not influence on
-GitLab configuration (there is no support to embedded registry configuration
-in this moodule)
-
-Default value: ``undef``
-
-##### `registry_cert_path`
-
-Data type: `Optional[Stdlib::Unixpath]`
-
-This is the path where `registry_internal_certificate` contents will be
-written to disk.
-default certificate location is /var/opt/gitlab/registry/gitlab-registry.crt
-
-Default value: ``undef``
-
-##### `registry_cert_export`
-
-Data type: `Boolean`
-
-Whether to write certificate content intoo local file system or export it to
-Puppet DB
-
-Default value: ``true``
 
 ##### `packages_enabled`
 
@@ -957,4 +1004,83 @@ Whether provided certificate and key should be installed on server
 or not
 
 Default value: `$gitlabinstall::manage_cert_data`
+
+## Resource types
+
+### `registry_token`
+
+Registry authentication JWT token
+
+#### Properties
+
+The following properties are available in the `registry_token` type.
+
+##### `audience`
+
+Auth service
+
+Default value: `container_registry`
+
+##### `ensure`
+
+Valid values: `present`, `absent`
+
+Create or remove token.
+
+Default value: `present`
+
+##### `expire_time`
+
+Token expiration time
+
+##### `issued_at`
+
+Time when token have been issued at
+
+##### `issuer`
+
+Token issuer
+
+Default value: `omnibus-gitlab-issuer`
+
+##### `not_before`
+
+Time when token starts to be valid
+
+##### `subject`
+
+Token username
+
+#### Parameters
+
+The following parameters are available in the `registry_token` type.
+
+##### `id`
+
+Token ID
+
+##### `name`
+
+namevar
+
+Token Name
+
+##### `provider`
+
+The specific backend to use for this `registry_token` resource. You will seldom need to specify this --- Puppet will
+usually discover the appropriate provider for your platform.
+
+##### `target`
+
+Valid values: `%r{^[a-z0-9.-]+$}`
+
+File inside /etc/docker/registry directory where token should be stored
+
+Default value: `token.json`
+
+##### `threshold`
+
+Validity threshold
+
+Default value: `600`
 

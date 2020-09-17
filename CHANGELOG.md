@@ -101,3 +101,14 @@ under module management
 
 **Known Issues**
 
+## Release 1.3.0
+
+**Features**
+
+* Added authentication tokens
+* Separated settinngs for external registry
+
+**Bugfixes**
+
+**Known Issues**
+
