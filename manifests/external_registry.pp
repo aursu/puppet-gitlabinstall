@@ -58,7 +58,7 @@
 # @param token_expire_time
 #   Expiration time for default JWT token. Could be unix timestamp or string
 #   representation of a time (which could be parsed by ruby function Time.parse)
-#   Default expiration time is
+#   Default expiration time is 3600 seconds after current time
 #
 # @param token_expire_threshold
 #   Threshold for expiration time in seconds. If expiration time is less then

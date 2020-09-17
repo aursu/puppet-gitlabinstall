@@ -7,6 +7,7 @@ Puppet::Type.newtype(:registry_token) do
   DEFAULT_NOT_BEFORE_TIME = 5
   DEFAULT_EXPIRE_TIME = 3600
 
+  # time property base
   class TimeProperty < Puppet::Property
     validate do |value|
       # accept unix timestamp
@@ -20,7 +21,7 @@ Puppet::Type.newtype(:registry_token) do
       Time.parse(value).to_i
     end
 
-    def insync?(is)
+    def insync?(_is)
       provider.exp_insync?
     end
   end
@@ -66,7 +67,7 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     validate do |value|
-      raise ArgumentError, _("Threshold must be provided as a number.") unless value.to_s =~ %r{^\d+$}
+      raise ArgumentError, _('Threshold must be provided as a number.') unless value.to_s =~ %r{^\d+$}
     end
   end
 

@@ -4,8 +4,8 @@ require 'openssl'
 Puppet::Type.type(:registry_token).provide(:ruby) do
   @doc = 'Registry auth token provider'
 
-  confine :exists => '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
-  confine :exists => '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
+  confine exists: '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
+  confine exists: '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
   confine true: begin
                   require 'jwt'
                   require 'base32'
