@@ -72,7 +72,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     name    = s['name']
     type    = s['type']
 
-    s['name']    = normalize_name(name)
+    s['name']    = normalize_project_name(name)
     s['type']    = type ? type.to_s : 'repository'
     s['actions'] = actions ? [actions].flatten.map { |a| a.to_s }.sort : ['pull', 'push']
 
