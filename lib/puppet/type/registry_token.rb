@@ -135,6 +135,73 @@ Puppet::Type.newtype(:registry_token) do
     end
   end
 
+  newproperty(:access, array_matching: :all) do
+    desc 'Token access levels'
+
+    def retrieve
+      provider.token_data['access']
+    end
+
+    validate do |value|
+      # [ { "type" => "repository", "name" => "group/project", "actions" => ["push", "pull"]}, {}, {} ]
+      # { "type" => "repository", "name" => "group/project", "actions" => "*" }
+      # { "name" => "group/project", "actions" => ["push", "pull"] }
+      # { "name" => "group/project" }
+      # "group/project"
+
+      return value.all? { |s| check_name(s) || check_scope(s) } if value.is_a?(Array)
+      return true if check_name(value) || check_scope(value)
+
+      raise ArgumentError, _("Token access field is not correct. Must be in format: { \"type\" => \"repository\", \"name\" => \"group/project\", \"actions\" => [\"pull\", \"push\"]}, not #{value}")
+    end
+
+    munge do |value|
+      normalize_scope(value)
+    end
+
+    def insync?(is)
+      # is == :absent in case of non-existing scopes for token
+      return @should == [:absent] if is.nil? || is == [] || is.to_s == 'absent'
+
+      is.flatten.sort == should.flatten.sort
+    end
+
+    def normalize_name(name)
+      provider.normalize_project_name(name)
+    end
+
+    def normalize_scope(scope)
+      provider.normalize_project_scope(scope)
+    end
+
+    def check_name(name)
+      name.is_a?(String) && normalize_name(name).split('/').all? { |x| x =~ %r{^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*$} }
+    end
+
+    def check_scope(scope)
+      return false unless scope.is_a?(Hash)
+
+      s = scope.map { |k, v| [k.to_s, v] }.to_h
+      actions = s['actions']
+      name    = s['name']
+      type    = s['type']
+
+      return false unless name
+
+      if type
+        return false unless type.to_s == 'repository'
+      end
+
+      if actions
+        a = [actions].flatten.map { |x| x.to_s }
+
+        return false unless a.all? { |x| ['*', 'delete', 'pull', 'push'].include?(x) }
+      end
+
+      check_name(name)
+    end
+  end
+
   newparam(:target) do
     desc 'File inside /etc/docker/registry directory where token should be stored'
 

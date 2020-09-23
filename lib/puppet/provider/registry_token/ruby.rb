@@ -28,6 +28,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @instances = [] unless @instances
 
     entity_name = (name == 'token') ? 'default' : name
+    entity_access = normalize_project_scope(entity['access']) if entity['access']
 
     @instances << new(name: entity_name,
                       ensure: :present,
@@ -38,6 +39,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
                       issued_at: entity['iat'].to_i,
                       not_before: entity['nbf'].to_i,
                       expire_time: entity['exp'].to_i,
+                      access: entity_access,
                       target: "#{name}.json",
                       provider: name)
   end
@@ -55,6 +57,26 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     end
 
     @instances || []
+  end
+
+  def self.normalize_project_name(name)
+    name.gsub(%r{^/|/$}, '')
+  end
+
+  def self.normalize_project_scope(scope)
+    return scope.map { |x| normalize_project_scope(x) } if scope.is_a?(Array)
+
+    s = scope.is_a?(String) ? { 'name' => scope } : scope.map { |k, v| [k.to_s, v] }.to_h
+
+    actions = s['actions']
+    name    = s['name']
+    type    = s['type']
+
+    s['name']    = normalize_name(name)
+    s['type']    = type ? type.to_s : 'repository'
+    s['actions'] = actions ? [actions].flatten.map { |a| a.to_s }.sort : ['pull', 'push']
+
+    s
   end
 
   def self.token_data(file_name)
@@ -112,7 +134,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
       token.expire_time = @resource[:expire_time].to_i
-      token[:access] = []
+      token[:access] = @resource[:access]
       token[:jti]    = @resource[:id]
       token[:iat]    = @resource[:issued_at].to_i
       token[:nbf]    = @resource[:not_before].to_i
@@ -140,11 +162,22 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def generate_content
-    @content = { 'token' => authorized_token.encoded }.to_json
+    content = { 'token' => authorized_token.encoded }
+    content['access'] = @resource[:access] if @resource[:access]
+
+    @content = content.to_json
   end
 
   def store_content
     File.open(target_path, 'w') { |f| f.write(token_content) }
+  end
+
+  def normalize_project_name(name)
+    self.class.normalize_project_name(name)
+  end
+
+  def normalize_project_scope(scope)
+    self.class.normalize_project_scope(scope)
   end
 
   def exists?
@@ -186,6 +219,10 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   def expire_time=(exp)
     @property_flush[:expire_time] = exp
+  end
+
+  def access=(acc)
+    @property_flush[:access] = acc
   end
 
   def flush
