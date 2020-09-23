@@ -67,8 +67,8 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     validate do |value|
-      return true if value.is_a?(Integer)
-      raise ArgumentError, _('Threshold must be provided as a number.') unless value.to_s =~ %r{^\d+$}
+      return true if value.to_s =~ %r{^\d+$}
+      raise ArgumentError, _('Threshold must be provided as a number.')
     end
   end
 
