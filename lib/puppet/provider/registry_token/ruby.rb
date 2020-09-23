@@ -79,6 +79,8 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     s
   end
 
+  # read and decrypt token from Token file in /etc/docker/registry directory
+  # return token decrypted data
   def self.token_data(file_name)
     content = token_content(file_name)
     return {} if content.empty?
@@ -95,11 +97,13 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     jwt
   end
 
+  # read token from token file in /etc/docker/registry directory
   def self.token_content(file_name)
     return '' unless File.exist?(file_name)
     File.read(file_name)
   end
 
+  # decrypt raw token data using registry private key
   def self.token_decrypt(token)
     pkey = File.read(REGISTRY_KEY)
     secret = OpenSSL::PKey::RSA.new(pkey).public_key
@@ -134,7 +138,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
       token.expire_time = @resource[:expire_time].to_i
-      token[:access] = @resource[:access]
+      token[:access] = @resource[:access] || []
       token[:jti]    = @resource[:id]
       token[:iat]    = @resource[:issued_at].to_i
       token[:nbf]    = @resource[:not_before].to_i
