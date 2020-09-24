@@ -38,6 +38,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
                       issued_at: entity['iat'].to_i,
                       not_before: entity['nbf'].to_i,
                       expire_time: entity['exp'].to_i,
+                      ttl: entity['exp'].to_i - Time.now.to_i,
                       access: normalize_project_scope(entity['access']),
                       target: "#{name}.json",
                       provider: name)
@@ -154,7 +155,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
       token.issuer      = @resource[:issuer]
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
-      token.expire_time = @resource[:expire_time].to_i
+      token.expire_time = expire_time
       token[:access] = entity_access || []
       token[:jti]    = @resource[:id]
       token[:iat]    = @resource[:issued_at].to_i
@@ -213,8 +214,27 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     return false if is.nil? || is.to_s == 'absent'
 
     current = Time.now.to_i
+    return true if current + threshold > is
+  end
 
-    return true if is - current >= threshold
+  def expire_time
+    # setup expire time concidering TTL
+    exp       = @resource[:expire_time].to_i
+
+    ttl       = @resource[:ttl].to_i
+    threshold = @resource[:threshold].to_i
+
+    # TTL should be greater than Threshold but not necessary
+    ttl = threshold if threshold > ttl
+
+    current = Time.now.to_i
+
+    # expiration date is too close
+    if current + threshold > exp
+      exp = current + ttl
+    end
+
+    exp
   end
 
   def destroy

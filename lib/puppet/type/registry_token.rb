@@ -1,6 +1,20 @@
 require 'securerandom'
 require 'time'
 
+# Token expiration time
+#
+# By default if not set explicitly (eg in resource definition
+# registry_token { 'name': expire_time => "2020-10-01 22:00" }) it will be set
+# to current time (Puppet agent run time) plus default expire time period in
+# 1 hour.
+#
+# If default expire time period less than Threshold than it will be set to
+# either Threshold or TTL (which value greater). Default value for Threshold
+# is 600 seconds and for TTL si 24 hours
+#
+# If expiration time is not in sync - all time settinngs will be reset into new
+# updated values
+#
 Puppet::Type.newtype(:registry_token) do
   @doc = 'Registry authentication JWT token'
 
@@ -69,6 +83,45 @@ Puppet::Type.newtype(:registry_token) do
     validate do |value|
       return true if value.to_s =~ %r{^\d+$}
       raise ArgumentError, _('Threshold must be provided as a number.')
+    end
+  end
+
+  newproperty(:ttl) do
+    desc 'Controls the expiry of the token'
+
+    newvalues(%r{^([0-9]+h)?([1-5]?[0-9]m)?([1-5]?[0-9]s)?$}, %r{^[0-9]+s?$})
+
+    defaultto '24h0m0s'
+
+    validate do |value|
+      raise ArgumentError, _('TTL parameter could not be empty') if value.empty?
+    end
+
+    munge do |value|
+      s = 0
+      ttl = 0
+
+      # format XXhXXmXXs in use - return it
+      mttl = %r{^(?<hours>[0-9]+h)?(?<mins>[1-5]?[0-9]m)?(?<secs>[1-5]?[0-9]s)?$}.match(value.to_s)
+      if mttl
+        s   = mttl[:secs].to_i
+        ttl = mttl[:hours].to_i * 3600 + mttl[:mins].to_i * 60
+
+        return (ttl + s) if ttl > 0
+      end
+
+      mstamp = %r{^(?<secs>[0-9]+s?)?$}.match(value.to_s)
+      s = mstamp[:secs].to_i if mstamp && mstamp[:secs].to_i > s
+
+      ttl + s
+    end
+
+    def retrieve
+      provider.token_data['exp'].to_i - Time.now
+    end
+
+    def insync?(_is)
+      provider.exp_insync?
     end
   end
 
