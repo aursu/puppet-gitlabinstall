@@ -117,7 +117,7 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     def retrieve
-      provider.token_data['exp'].to_i - Time.now
+      provider.token_data['exp'].to_i - Time.now.to_i
     end
 
     def insync?(_is)
