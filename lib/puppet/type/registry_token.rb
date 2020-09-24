@@ -204,7 +204,7 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     def sort_scope(scope)
-      [scope].flatten.compact.sort { |a, b| a['name'] <=> b['name'] }
+      [scope].flatten.compact.sort_by { |a| a['name'] }
     end
 
     def should_to_s(newvalue = @should)

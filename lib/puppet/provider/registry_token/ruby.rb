@@ -148,7 +148,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
     require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
 
-    entity_access =  @resource[:access].flatten.compact if @resource[:access]
+    entity_access = @resource[:access].flatten.compact if @resource[:access]
 
     JSONWebToken::RSAToken.new(REGISTRY_KEY).tap do |token|
       token.issuer      = @resource[:issuer]
