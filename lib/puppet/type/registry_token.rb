@@ -139,6 +139,8 @@ Puppet::Type.newtype(:registry_token) do
   newproperty(:access, array_matching: :all) do
     desc 'Token access levels'
 
+    defaultto :absent
+
     def retrieve
       provider.token_data['access']
     end
@@ -149,6 +151,8 @@ Puppet::Type.newtype(:registry_token) do
       # { "name" => "group/project", "actions" => ["push", "pull"] }
       # { "name" => "group/project" }
       # "group/project"
+
+      return true if value.to_s == 'absent'
 
       return value.all? { |s| check_name(s) || check_scope(s) } if value.is_a?(Array)
       return true if check_name(value) || check_scope(value)
@@ -161,10 +165,7 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     def insync?(is)
-      # is == :absent in case of non-existing scopes for token
-      return @should == [:absent] if is.nil? || is == [] || is.to_s == 'absent'
-
-      is.flatten.sort == should.flatten.sort
+      sort_scope(is) == sort_scope(should)
     end
 
     def normalize_name(name)
@@ -200,6 +201,14 @@ Puppet::Type.newtype(:registry_token) do
       end
 
       check_name(name)
+    end
+
+    def sort_scope(scope)
+      [scope].flatten.compact.sort { |a, b| a['name'] <=> b['name'] }
+    end
+
+    def should_to_s(newvalue = @should)
+      super(newvalue.compact)
     end
   end
 

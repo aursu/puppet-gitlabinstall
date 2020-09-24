@@ -28,7 +28,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @instances = [] unless @instances
 
     entity_name = (name == 'token') ? 'default' : name
-    entity_access = normalize_project_scope(entity['access']) if entity['access']
 
     @instances << new(name: entity_name,
                       ensure: :present,
@@ -39,7 +38,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
                       issued_at: entity['iat'].to_i,
                       not_before: entity['nbf'].to_i,
                       expire_time: entity['exp'].to_i,
-                      access: entity_access,
+                      access: normalize_project_scope(entity['access']),
                       target: "#{name}.json",
                       provider: name)
   end
@@ -64,9 +63,18 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def self.normalize_project_scope(scope)
-    return scope.map { |x| normalize_project_scope(x) } if scope.is_a?(Array)
-
-    s = scope.is_a?(String) ? { 'name' => scope } : scope.map { |k, v| [k.to_s, v] }.to_h
+    case scope
+    when nil, :absent, 'absent'
+      return nil
+    when [nil], [:absent], ['absent']
+      return []
+    when Array
+      return scope.map { |x| normalize_project_scope(x) }
+    when String
+      s = { 'name' => scope }
+    else
+      s = scope.map { |k, v| [k.to_s, v] }.to_h
+    end
 
     actions = s['actions']
     name    = s['name']
@@ -74,7 +82,14 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
     s['name']    = normalize_project_name(name)
     s['type']    = type ? type.to_s : 'repository'
-    s['actions'] = actions ? [actions].flatten.map { |a| a.to_s }.sort : ['pull', 'push']
+    s['actions'] = if actions
+                     [actions].flatten
+                              .map { |a| a.to_s }
+                              .select { |x| ['*', 'delete', 'pull', 'push'].include?(x) }
+                              .sort
+                   else
+                     ['pull', 'push']
+                   end
 
     s
   end
@@ -133,12 +148,14 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
     require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
 
+    entity_access =  @resource[:access].flatten.compact if @resource[:access]
+
     JSONWebToken::RSAToken.new(REGISTRY_KEY).tap do |token|
       token.issuer      = @resource[:issuer]
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
       token.expire_time = @resource[:expire_time].to_i
-      token[:access] = @resource[:access] || []
+      token[:access] = entity_access || []
       token[:jti]    = @resource[:id]
       token[:iat]    = @resource[:issued_at].to_i
       token[:nbf]    = @resource[:not_before].to_i
@@ -167,7 +184,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   def generate_content
     content = { 'token' => authorized_token.encoded }
-    content['access'] = @resource[:access] if @resource[:access]
+    content['access'] = @resource[:access].flatten.compact if @resource[:access]
 
     @content = content.to_json
   end
