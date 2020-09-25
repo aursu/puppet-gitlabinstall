@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', '..'))
+require 'puppet_x/gitlabinstall/token_tools'
 require 'securerandom'
 require 'time'
 
@@ -221,43 +223,20 @@ Puppet::Type.newtype(:registry_token) do
       sort_scope(is) == sort_scope(should)
     end
 
-    def normalize_name(name)
-      provider.normalize_project_name(name)
-    end
-
     def normalize_scope(scope)
-      provider.normalize_project_scope(scope)
+      Puppet_X::GitlabInstall.normalize_project_scope(scope)
     end
 
     def check_name(name)
-      name.is_a?(String) && normalize_name(name).split('/').all? { |x| x =~ %r{^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*$} }
+      Puppet_X::GitlabInstall.check_project_name(name)
     end
 
     def check_scope(scope)
-      return false unless scope.is_a?(Hash)
-
-      s = scope.map { |k, v| [k.to_s, v] }.to_h
-      actions = s['actions']
-      name    = s['name']
-      type    = s['type']
-
-      return false unless name
-
-      if type
-        return false unless type.to_s == 'repository'
-      end
-
-      if actions
-        a = [actions].flatten.map { |x| x.to_s }
-
-        return false unless a.all? { |x| ['*', 'delete', 'pull', 'push'].include?(x) }
-      end
-
-      check_name(name)
+      Puppet_X::GitlabInstall.check_project_scope(scope)
     end
 
     def sort_scope(scope)
-      [scope].flatten.compact.sort_by { |a| a['name'] }
+      Puppet_X::GitlabInstall.sort_scope(scope)
     end
 
     def should_to_s(newvalue = @should)

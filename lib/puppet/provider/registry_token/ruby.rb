@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', '..', '..'))
+require 'puppet_x/gitlabinstall/token_tools'
 require 'time'
 require 'openssl'
 
@@ -60,39 +62,11 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def self.normalize_project_name(name)
-    name.gsub(%r{^/|/$}, '')
+    Puppet_X::GitlabInstall.normalize_project_name(name)
   end
 
   def self.normalize_project_scope(scope)
-    case scope
-    when nil, :absent, 'absent'
-      return nil
-    when [nil], [:absent], ['absent']
-      return []
-    when Array
-      return scope.map { |x| normalize_project_scope(x) }
-    when String
-      s = { 'name' => scope }
-    else
-      s = scope.map { |k, v| [k.to_s, v] }.to_h
-    end
-
-    actions = s['actions']
-    name    = s['name']
-    type    = s['type']
-
-    s['name']    = normalize_project_name(name)
-    s['type']    = type ? type.to_s : 'repository'
-    s['actions'] = if actions
-                     [actions].flatten
-                              .map { |a| a.to_s }
-                              .select { |x| ['*', 'delete', 'pull', 'push'].include?(x) }
-                              .sort
-                   else
-                     ['pull', 'push']
-                   end
-
-    s
+    Puppet_X::GitlabInstall.normalize_project_scope(scope)
   end
 
   # read and decrypt token from Token file in /etc/docker/registry directory
