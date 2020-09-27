@@ -201,16 +201,7 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     validate do |value|
-      # [ { "type" => "repository", "name" => "group/project", "actions" => ["push", "pull"]}, {}, {} ]
-      # { "type" => "repository", "name" => "group/project", "actions" => "*" }
-      # { "name" => "group/project", "actions" => ["push", "pull"] }
-      # { "name" => "group/project" }
-      # "group/project"
-
-      return true if value.to_s == 'absent'
-
-      return value.all? { |s| check_name(s) || check_scope(s) } if value.is_a?(Array)
-      return true if check_name(value) || check_scope(value)
+      return true if check_scope(value)
 
       raise ArgumentError, _("Token access field is not correct. Must be in format: { \"type\" => \"repository\", \"name\" => \"group/project\", \"actions\" => [\"pull\", \"push\"]}, not #{value}")
     end
@@ -223,12 +214,12 @@ Puppet::Type.newtype(:registry_token) do
       sort_scope(is) == sort_scope(should)
     end
 
-    def normalize_scope(scope)
-      Puppet_X::GitlabInstall.normalize_project_scope(scope)
+    def should_to_s(newvalue = @should)
+      super(newvalue.compact)
     end
 
-    def check_name(name)
-      Puppet_X::GitlabInstall.check_project_name(name)
+    def normalize_scope(scope)
+      Puppet_X::GitlabInstall.normalize_project_scope(scope)
     end
 
     def check_scope(scope)
@@ -237,10 +228,6 @@ Puppet::Type.newtype(:registry_token) do
 
     def sort_scope(scope)
       Puppet_X::GitlabInstall.sort_scope(scope)
-    end
-
-    def should_to_s(newvalue = @should)
-      super(newvalue.compact)
     end
   end
 

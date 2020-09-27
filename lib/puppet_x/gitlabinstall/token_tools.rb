@@ -42,7 +42,18 @@ module Puppet_X
     end
 
     def self.check_project_scope(scope)
-      return false unless scope.is_a?(Hash)
+      case scope
+      when nil, :absent, 'absent'
+        return true
+      when [nil], [:absent], ['absent']
+        return true
+      when String
+        return check_project_name(scope)
+      when Array
+        return scope.all? { |s| check_project_scope(s) }
+      else
+        return false unless scope.is_a?(Hash)
+      end
 
       s = scope.map { |k, v| [k.to_s, v] }.to_h
       actions = s['actions']

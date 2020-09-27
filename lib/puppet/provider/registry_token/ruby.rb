@@ -26,6 +26,10 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   mk_resource_methods
 
+  def self.normalize_project_scope(scope)
+    Puppet_X::GitlabInstall.normalize_project_scope(scope)
+  end
+
   def self.add_instance(name, entity = {})
     @instances = [] unless @instances
 
@@ -59,14 +63,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     end
 
     @instances || []
-  end
-
-  def self.normalize_project_name(name)
-    Puppet_X::GitlabInstall.normalize_project_name(name)
-  end
-
-  def self.normalize_project_scope(scope)
-    Puppet_X::GitlabInstall.normalize_project_scope(scope)
   end
 
   # read and decrypt token from Token file in /etc/docker/registry directory
@@ -119,18 +115,21 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     # rubocop:enable Lint/AssignmentInCondition
   end
 
+  def resource_access
+    return nil unless @resource[:access]
+    @resource[:access].flatten.compact
+  end
+
   def authorized_token
     require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
     require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
-
-    entity_access = @resource[:access].flatten.compact if @resource[:access]
 
     JSONWebToken::RSAToken.new(REGISTRY_KEY).tap do |token|
       token.issuer      = @resource[:issuer]
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
       token.expire_time = expire_time
-      token[:access] = entity_access || []
+      token[:access] = resource_access || []
       token[:jti]    = @resource[:id]
       token[:iat]    = @resource[:issued_at].to_i
       token[:nbf]    = @resource[:not_before].to_i
@@ -159,21 +158,13 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   def generate_content
     content = { 'token' => authorized_token.encoded }
-    content['access'] = @resource[:access].flatten.compact if @resource[:access]
+    content['access'] = resource_access
 
     @content = content.to_json
   end
 
   def store_content
     File.open(target_path, 'w') { |f| f.write(token_content) }
-  end
-
-  def normalize_project_name(name)
-    self.class.normalize_project_name(name)
-  end
-
-  def normalize_project_scope(scope)
-    self.class.normalize_project_scope(scope)
   end
 
   def exists?
