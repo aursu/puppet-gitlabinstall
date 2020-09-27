@@ -42,6 +42,12 @@ module Puppet_X
     end
 
     def self.check_project_scope(scope)
+      # [ { "type" => "repository", "name" => "group/project", "actions" => ["push", "pull"]}, {}, {} ]
+      # { "type" => "repository", "name" => "group/project", "actions" => "*" }
+      # { "name" => "group/project", "actions" => ["push", "pull"] }
+      # { "name" => "group/project" }
+      # "group/project"
+      # :absent
       case scope
       when nil, :absent, 'absent'
         return true
