@@ -41,6 +41,10 @@ module Puppet_X
       name.is_a?(String) && normalize_project_name(name).split('/').all? { |x| x =~ %r{^[a-z0-9]+((?:[._]|__|[-]*)[a-z0-9]+)*$} }
     end
 
+    # check 'access' field input for Puppet resource registry_token
+    # it accepts value :absent (including all possible variations)
+    # it accepts project name (considering default values for fields 'type' and 'actions')
+    # it accepts scope Hash (with mandatory field 'name')
     def self.check_project_scope(scope)
       # [ { "type" => "repository", "name" => "group/project", "actions" => ["push", "pull"]}, {}, {} ]
       # { "type" => "repository", "name" => "group/project", "actions" => "*" }
