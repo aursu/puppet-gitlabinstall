@@ -1015,6 +1015,12 @@ Registry authentication JWT token
 
 The following properties are available in the `registry_token` type.
 
+##### `access`
+
+Token access levels
+
+Default value: `absent`
+
 ##### `audience`
 
 Auth service
@@ -1050,6 +1056,14 @@ Time when token starts to be valid
 ##### `subject`
 
 Token username
+
+##### `ttl`
+
+Valid values: `%r{^([0-9]+h)?([1-5]?[0-9]m)?([1-5]?[0-9]s)?$}`, `%r{^[0-9]+s?$}`
+
+Controls the expiry of the token
+
+Default value: `24h0m0s`
 
 #### Parameters
 

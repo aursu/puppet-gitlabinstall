@@ -112,3 +112,12 @@ under module management
 
 **Known Issues**
 
+## Release 1.4.0
+
+**Features**
+
+* Added `access` and `ttl` properties into access token type
+
+**Bugfixes**
+
+**Known Issues**
