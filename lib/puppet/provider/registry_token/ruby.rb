@@ -179,7 +179,9 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     return false if is.nil? || is.to_s == 'absent'
 
     current = Time.now.to_i
-    return true if current + threshold > is
+    exp = current + threshold
+
+    (is > exp)
   end
 
   def expire_time
