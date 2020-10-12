@@ -37,7 +37,7 @@ For .fixtures.yml
 ```
 nginx:
   repo: https://github.com/aursu/puppet-nginx.git
-  ref: tags/v1.1.1-rc0.7
+  ref: tags/v2.0.1-rc0.3
 ```
 
 and for Puppetfile:
@@ -45,7 +45,7 @@ and for Puppetfile:
 ```
 mod 'nginx',
   :git => 'https://github.com/aursu/puppet-nginx.git',
-  :tag => 'v1.1.1-rc0.7'
+  :tag => 'v2.0.1-rc0.3'
 ```
 
 Also requires non-published on Puppet Forge module `aursu::lsys` which is set
