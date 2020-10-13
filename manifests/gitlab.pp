@@ -321,7 +321,7 @@ class gitlabinstall::gitlab (
         refreshonly => true,
         onlyif      => "test -f ${unit}",
         subscribe   => Package[$package_name],
-        before      => Exec['gitlab_reconfigure'],
+        notify      => Exec['gitlab_reconfigure'],
         path        => '/bin:/usr/bin',
       }
     }

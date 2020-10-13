@@ -29,6 +29,11 @@
 #   Whether to manage PostgreSQL core or not (installation, initialization,
 #   service start)
 #
+# @param pg_tools_setup
+#   Whether to setup system pg_dump and psql tools into /opt/gitlab/bin path
+#   See https://docs.gitlab.com/omnibus/settings/database.html#backup-and-restore-a-non-packaged-postgresql-database
+#   for details
+#
 # @param non_bundled_web_server
 #   Whether to use bundled into GitLab Nginx service or not
 #
