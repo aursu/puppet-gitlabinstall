@@ -25,7 +25,7 @@ Facter.add(:gitlab_auth_token) do
           name = a['name']
           # add slash into project name to reflect URL form and segregate it
           # from 'default' token
-          auth_token["/#{name}"] = access_token if name
+          auth_token[name] = access_token if name
         end
       rescue SystemCallError
         next
