@@ -287,10 +287,11 @@ Puppet::Type.newtype(:registry_token) do
     not_before  = self[:not_before].to_i
     expire_time = self[:expire_time].to_i
     threshold   = self[:threshold].to_i
+    ttl         = self[:ttl].to_i
     subject     = self[:subject]
 
-    if current + threshold > expire_time
-      raise Puppet::Error, 'Token expiration is too close. Please update'
+    if current + threshold > expire_time && threshold > ttl
+      raise Puppet::Error, 'Token expiration is too close. Please increase expire_time or ttl'
     end
 
     if not_before >= expire_time

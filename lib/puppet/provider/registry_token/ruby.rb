@@ -191,9 +191,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     ttl       = @resource[:ttl].to_i
     threshold = @resource[:threshold].to_i
 
-    # TTL should be greater than Threshold but not necessary
-    ttl = threshold if threshold > ttl
-
     current = Time.now.to_i
 
     # expiration date is too close
