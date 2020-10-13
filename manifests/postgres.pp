@@ -47,7 +47,6 @@ class gitlabinstall::postgres (
     file {
       default:
         ensure => link,
-        before => Class['gitlab::install'],
       ;
       '/opt/gitlab/bin/pg_dump':
         target => $pg_dump_path,
