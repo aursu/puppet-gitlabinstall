@@ -71,6 +71,7 @@ class gitlabinstall (
           $cert_identity               = undef,
   Boolean $external_postgresql_service = true,
   Boolean $manage_postgresql_core      = true,
+  Boolean $pg_tools_setup              = true,
   Boolean $non_bundled_web_server      = true,
   Boolean $manage_nginx_core           = true,
   Boolean $external_registry_service   = false,

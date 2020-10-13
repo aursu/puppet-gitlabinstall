@@ -11,6 +11,7 @@ class gitlabinstall::postgres (
   Boolean $manage_service      = $gitlabinstall::manage_postgresql_core,
   String  $database_username   = $gitlabinstall::params::database_username,
   String  $database_name       = $gitlabinstall::params::database_name,
+  Boolean $system_tools_setup  = $gitlabinstall::pg_tools_setup,
 ) inherits gitlabinstall::params
 {
   if $manage_service {
@@ -33,5 +34,27 @@ class gitlabinstall::postgres (
     extension => 'btree_gist',
     database  => $database_name,
     require   => Postgresql::Server::Db[$database_name],
+  }
+
+  # https://docs.gitlab.com/omnibus/settings/database.html#backup-and-restore-a-non-packaged-postgresql-database
+  if $system_tools_setup {
+    include postgresql::params
+
+    $bindir = $postgresql::params::bindir
+    $pg_dump_path = "${bindir}/pg_dump"
+    $psql_path = "${bindir}/psql"
+
+    file {
+      default:
+        ensure => link,
+        before => Class['gitlab::install'],
+      ;
+      '/opt/gitlab/bin/pg_dump':
+        target => $pg_dump_path,
+      ;
+      '/opt/gitlab/bin/psql':
+        target => $psql_path,
+      ;
+    }
   }
 }
