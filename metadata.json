@@ -18,11 +18,11 @@
     },
     {
       "name": "aursu/lsys",
-      "version_requirement": ">= 0.5.1 < 1.0.0"
+      "version_requirement": ">= 0.5.4 < 1.0.0"
     },
     {
       "name": "puppet/nginx",
-      "version_requirement": ">= 1.1.0 < 3.0.0"
+      "version_requirement": ">= 2.0.0 < 3.0.0"
     },
     {
       "name": "puppetlabs/postgresql",
