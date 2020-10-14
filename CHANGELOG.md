@@ -121,3 +121,20 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.5.0
+
+**Features**
+
+* Added postgresql tools setup
+* Added template for tokens' map
+
+**Bugfixes**
+
+* Corrected name parameter for access field (not to start from slash /)
+* Updated token validation (threshold should be less than ttl) if expire time
+  is too close
+* Changed dependency type for service cleanup
+* Updated module dependencies
+
+**Known Issues**
