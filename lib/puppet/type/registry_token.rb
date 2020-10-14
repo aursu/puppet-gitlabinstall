@@ -10,9 +10,8 @@ require 'time'
 # to current time (Puppet agent run time) plus default expire time period in
 # 1 hour.
 #
-# If default expire time period less than Threshold than it will be set to
-# either Threshold or TTL (which value greater). Default value for Threshold
-# is 600 seconds and for TTL si 24 hours
+# If default expire time period less than Threshold than it will be increased by
+# value of TTL. Default value for Threshold is 600 seconds and for TTL is 24 hours
 #
 # If expiration time is not in sync - all time settinngs will be reset into new
 # updated values

@@ -50,6 +50,13 @@
 #   Whether to write certificate content intoo local file system or export it to
 #   Puppet DB
 #
+# @param token_map_export
+#   Whether to export Nginx tokens map into PuppetDB or not
+#
+# @param token_map_setup
+#   Whether to setup Nginx tokens map locally or not (mutually exclusive with
+#   `token_map_export` with lower priority)
+#
 # @param token_username
 #   Username to use for default JWT auth token (as subject field). This token
 #   will be generated and stored into file `/etc/docker/registry/token.json`
@@ -85,6 +92,9 @@ class gitlabinstall::external_registry (
           $registry_cert_path            = undef,
 
   Boolean $registry_cert_export          = true,
+  Boolean $token_map_export              = true,
+  Boolean $token_map_setup               = true,
+
   # Token settings
   String  $token_username                = 'registry-bot',
   Optional[String]
@@ -129,6 +139,8 @@ class gitlabinstall::external_registry (
     registry_cert_export          => $registry_cert_export,
     registry_internal_certificate => $registry_internal_certificate,
     gitlab_host                   => $server_name,
+    token_map_export              => $token_map_export,
+    token_map_setup               => $token_map_setup,
   }
 
   # GitLab backup could be broken due to missed folder
