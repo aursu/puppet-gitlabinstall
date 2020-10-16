@@ -125,12 +125,12 @@ class gitlabinstall::nginx (
 
   # additional Nginx settings for filtering GitLab tokens from access logs
   nginx::resource::config { '99-gitlab-logging':
-      template => 'gitlabinstall/nginx/conf.d/gitlab-logging.conf.erb',
+    content => template('gitlabinstall/nginx/conf.d/gitlab-logging.conf.erb'),
   }
 
   # Nginx upstream for GitLab Workhorse socket
   nginx::resource::upstream { 'gitlab-workhorse':
-      members => $nginx_upstream_members,
+    members => $nginx_upstream_members,
   }
 
   if $facts['selinux'] {
