@@ -32,7 +32,7 @@ fixtures:
       ref: tags/v0.5.3
     nginx:
       repo: https://github.com/aursu/puppet-nginx.git
-      ref: tags/v2.0.1-rc0.3
+      ref: tags/v2.0.1-rc0.4
     yumrepo_core:
       repo: https://github.com/puppetlabs/puppetlabs-yumrepo_core.git
       puppet_version: ">= 6.0.0"
