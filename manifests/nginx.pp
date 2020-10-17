@@ -83,6 +83,7 @@ class gitlabinstall::nginx (
           nginx_lib_directory   => '/var/lib/nginx',
           manage_document_root  => $manage_document_root,
           global_ssl_redirect   => true,
+          manage_map_dir        => true,
       }
       File[$nginx_log_directory] -> Nginx::Resource::Server['gitlab-http']
   }
