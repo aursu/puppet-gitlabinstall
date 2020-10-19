@@ -26,10 +26,10 @@ fixtures:
   repositories:
     dockerinstall:
       repo: https://github.com/aursu/puppet-dockerinstall.git
-      ref: tags/v0.6.4
+      ref: tags/v0.8.0
     lsys:
       repo: https://github.com/aursu/puppet-lsys.git
-      ref: tags/v0.5.3
+      ref: tags/v0.5.4
     nginx:
       repo: https://github.com/aursu/puppet-nginx.git
       ref: tags/v2.0.1-rc0.4
