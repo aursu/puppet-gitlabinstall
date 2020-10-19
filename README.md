@@ -37,7 +37,7 @@ For .fixtures.yml
 ```
 nginx:
   repo: https://github.com/aursu/puppet-nginx.git
-  ref: tags/v2.0.1-rc0.3
+  ref: tags/v2.0.1-rc0.4
 ```
 
 and for Puppetfile:
@@ -45,7 +45,7 @@ and for Puppetfile:
 ```
 mod 'nginx',
   :git => 'https://github.com/aursu/puppet-nginx.git',
-  :tag => 'v2.0.1-rc0.3'
+  :tag => 'v2.0.1-rc0.4'
 ```
 
 Also requires non-published on Puppet Forge module `aursu::lsys` which is set
@@ -56,7 +56,7 @@ Puppetfile setup:
 ```
 mod 'lsys',
   :git => 'https://github.com/aursu/puppet-lsys.git',
-  :tag => 'v0.5.1'
+  :tag => 'v0.5.4'
 ```
 
 Also requires non-published on Puppet Forge module `aursu::dockerinstall` which is set
@@ -67,7 +67,7 @@ Puppetfile setup:
 ```
 mod 'dockerinstall',
   :git => 'https://github.com/aursu/puppet-dockerinstall.git',
-  :tag => 'v0.6.4'
+  :tag => 'v0.8.0'
 ```
 
 ### Beginning with gitlabinstall
