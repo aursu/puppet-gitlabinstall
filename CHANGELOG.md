@@ -138,3 +138,14 @@ under module management
 * Updated module dependencies
 
 **Known Issues**
+
+## Release 1.5.1
+
+**Features**
+
+**Bugfixes**
+
+* Corrected nginx::resource::config resource
+* Enable map directory management in case if token auth enabled
+
+**Known Issues**
