@@ -149,3 +149,13 @@ under module management
 * Enable map directory management in case if token auth enabled
 
 **Known Issues**
+
+## Release 1.6.0
+
+**Features**
+
+* Added SMTP settings
+
+**Bugfixes**
+
+**Known Issues**

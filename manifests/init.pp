@@ -89,6 +89,7 @@ class gitlabinstall (
           $database_password           = undef,
   Array[Stdlib::IP::Address]
           $monitoring_whitelist        = [],
+
   Boolean $ldap_enabled                = false,
   Optional[String]
           $ldap_base                   = undef,
@@ -96,6 +97,18 @@ class gitlabinstall (
           $ldap_password               = undef,
   Optional[String]
           $ldap_host                   = undef,
+
+  Boolean $smtp_enabled                = false,
+  Optional[String]
+          $smtp_user_name              = undef,
+  Optional[String]
+          $smtp_password               = undef,
+  Stdlib::Fqdn
+          $smtp_address                = 'smtp.gmail.com',
+  Optional[Stdlib::Fqdn]
+          $smtp_domain                 = 'smtp.gmail.com',
+  Optional[String]
+          $gitlab_email_from           = undef,
 )
 {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation

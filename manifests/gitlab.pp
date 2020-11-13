@@ -90,6 +90,9 @@ class gitlabinstall::gitlab (
   Array[Stdlib::IP::Address]
             $monitoring_whitelist        = $gitlabinstall::monitoring_whitelist,
   Boolean   $ldap_enabled                = $gitlabinstall::ldap_enabled,
+
+  # SMTP settings
+  Boolean   $smtp_enabled                 = $gitlabinstall::smtp_enabled,
 )  inherits gitlabinstall::params
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
@@ -272,6 +275,15 @@ class gitlabinstall::gitlab (
     $gitlab_rails_ldap = {}
   }
 
+  if $smtp_enabled {
+    include gitlabinstall::smtp
+
+    $gitlab_rails_smtp = $gitlabinstall::smtp::gitlab_rails
+  }
+  else {
+    $gitlab_rails_smtp = {}
+  }
+
   file { $log_dir:
     ensure => directory,
   }
@@ -287,7 +299,8 @@ class gitlabinstall::gitlab (
                                     $gitlab_rails_registry +
                                     $gitlab_rails_packages +
                                     $gitlab_rails_monitoring_whitelist +
-                                    $gitlab_rails_ldap,
+                                    $gitlab_rails_ldap +
+                                    $gitlab_rails_smtp,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,
     web_server                   => $web_server,
