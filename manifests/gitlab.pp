@@ -107,6 +107,12 @@ class gitlabinstall::gitlab (
   $hostcert         = $gitlabinstall::params::hostcert
   $listen_addr      = $gitlabinstall::params::gitlab_workhorse_socket
 
+  $external_url = $gitlabinstall::external_url
+  $server_name  = $gitlabinstall::server_name
+
+  $gitlab_package_ensure_data = split($gitlab_package_ensure, '-')
+  $gitlab_version = $gitlab_package_ensure_data[0]
+
   # https://docs.gitlab.com/omnibus/update/gitlab_13_changes.html#default-workhorse-listen-socket-moved
   if versioncmp($gitlab_version, '13.5') >= 0 {
     $gitlab_workhorse_socket = {
@@ -116,12 +122,6 @@ class gitlabinstall::gitlab (
   else {
     $gitlab_workhorse_socket = {}
   }
-
-  $external_url = $gitlabinstall::external_url
-  $server_name  = $gitlabinstall::server_name
-
-  $gitlab_package_ensure_data = split($gitlab_package_ensure, '-')
-  $gitlab_version = $gitlab_package_ensure_data[0]
 
   class { 'gitlabinstall::ssl':
     manage_cert_data => $manage_cert_data,
