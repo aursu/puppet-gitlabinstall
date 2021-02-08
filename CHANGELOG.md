@@ -159,3 +159,14 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.7.0
+
+**Features**
+
+**Bugfixes**
+
+* set Gitlab['gitlab_workhorse']['listen_addr'] to avoid default socket location
+  change to /var/opt/gitlab/gitlab-workhorse/sockets/socket
+
+**Known Issues**

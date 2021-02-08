@@ -105,6 +105,17 @@ class gitlabinstall::gitlab (
   $user_shell       = $gitlabinstall::params::user_shell
   $certname         = $gitlabinstall::params::certname
   $hostcert         = $gitlabinstall::params::hostcert
+  $listen_addr      = $gitlabinstall::params::gitlab_workhorse_socket
+
+  # https://docs.gitlab.com/omnibus/update/gitlab_13_changes.html#default-workhorse-listen-socket-moved
+  if versioncmp($gitlab_version, '13.5') >= 0 {
+    $gitlab_workhorse_socket = {
+      listen_addr => $listen_addr,
+    }
+  }
+  else {
+    $gitlab_workhorse_socket = {}
+  }
 
   $external_url = $gitlabinstall::external_url
   $server_name  = $gitlabinstall::server_name
@@ -306,7 +317,8 @@ class gitlabinstall::gitlab (
     web_server                   => $web_server,
     unicorn                      => $unicorn,
     puma                         => $puma,
-    gitlab_workhorse             => $gitlab_workhorse,
+    gitlab_workhorse             => $gitlab_workhorse +
+                                    $gitlab_workhorse_socket,
     prometheus_monitoring_enable => $prometheus_monitoring_enable,
     sidekiq                      => $sidekiq,
   }
