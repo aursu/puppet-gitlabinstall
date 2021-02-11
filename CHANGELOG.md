@@ -170,3 +170,13 @@ under module management
   change to /var/opt/gitlab/gitlab-workhorse/sockets/socket
 
 **Known Issues**
+
+## Release 1.7.1
+
+**Features**
+
+**Bugfixes**
+
+* Added dockerinstall into gitlabinstall::external_registry to avoid dependency errors
+
+**Known Issues**
