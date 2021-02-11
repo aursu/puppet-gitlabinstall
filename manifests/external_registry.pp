@@ -103,6 +103,8 @@ class gitlabinstall::external_registry (
           $token_expire_threshold        = undef,
 ) inherits gitlabinstall::params
 {
+  include dockerinstall
+
   # Docker registry
   # see https://docs.gitlab.com/ee/administration/packages/container_registry.html#use-an-external-container-registry-with-gitlab-as-an-auth-endpoint
 
