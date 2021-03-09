@@ -180,3 +180,13 @@ under module management
 * Added dockerinstall into gitlabinstall::external_registry to avoid dependency errors
 
 **Known Issues**
+
+## Release 1.7.2
+
+**Features**
+
+**Bugfixes**
+
+* Updated puppet/gitlab version depenndency
+
+**Known Issues**
