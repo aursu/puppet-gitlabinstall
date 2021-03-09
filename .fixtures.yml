@@ -5,13 +5,13 @@ fixtures:
   forge_modules:
     concat:
       repo: puppetlabs/concat
-      ref: 6.2.0
+      ref: 6.4.0
     gitlab:
       repo: puppet/gitlab
-      ref: 5.1.0
+      ref: 6.0.1
     postgresql:
       repo: puppetlabs/postgresql
-      ref: 6.6.0
+      ref: 6.10.1
     puppet:
       repo: aursu/puppet
       ref: 0.1.5
@@ -20,19 +20,19 @@ fixtures:
       ref: 3.2.0
     stdlib:
       repo: puppetlabs/stdlib
-      ref: 6.3.0
+      ref: 6.6.0
     tlsinfo:
       repo: aursu/tlsinfo
+    yumrepo_core:
+      repo: puppetlabs/yumrepo_core
+      puppet_version: ">= 6.0.0"
   repositories:
     dockerinstall:
       repo: https://github.com/aursu/puppet-dockerinstall.git
-      ref: tags/v0.8.0
+      ref: tags/v0.9.5
     lsys:
       repo: https://github.com/aursu/puppet-lsys.git
-      ref: tags/v0.5.4
+      ref: tags/v0.18.0
     nginx:
       repo: https://github.com/aursu/puppet-nginx.git
-      ref: tags/v2.0.1-rc0.4
-    yumrepo_core:
-      repo: https://github.com/puppetlabs/puppetlabs-yumrepo_core.git
-      puppet_version: ">= 6.0.0"
+      ref: tags/v3.0.1-rc0.1
