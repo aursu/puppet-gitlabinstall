@@ -118,6 +118,14 @@ class gitlabinstall::gitlab (
     $gitlab_workhorse_socket = {
       listen_addr => $listen_addr,
     }
+
+    if $facts['os']['selinux']['enabled'] {
+      exec { "restorecon ${listen_addr}":
+        path        => '/sbin:/usr/sbin',
+        refreshonly => true,
+        subscribe   => Package['gitlab-omnibus'],
+      }
+    }
   }
   else {
     $gitlab_workhorse_socket = {}
@@ -338,18 +346,27 @@ class gitlabinstall::gitlab (
   # small cleanup in case of preceding manual uninstallation
   # to avoid https://docs.gitlab.com/omnibus/common_installation_problems/#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run
   if $upstream_edition in ['ce', 'ee'] and $service_name == 'gitlab-runsvdir' {
-    $package_name = 'gitlab-omnibus'
-
     [ '/usr/lib/systemd/system/gitlab-runsvdir.service',
       '/etc/systemd/system/basic.target.wants/gitlab-runsvdir.service'].each |$unit| {
       exec { "rm -f ${unit}":
         refreshonly => true,
         onlyif      => "test -f ${unit}",
-        subscribe   => Package[$package_name],
+        subscribe   => Package['gitlab-omnibus'],
         notify      => Exec['gitlab_reconfigure'],
         path        => '/bin:/usr/bin',
       }
     }
+  }
+
+  # run db:migrate after reconfigure
+  # see https://forum.gitlab.com/t/upgrading-from-13-9-4-to-13-10-0-results-in-an-error-500/50685/2
+  exec { 'gitlab-rake db:migrate':
+    path        => '/opt/gitlab/bin:/bin:/usr/bin',
+    refreshonly => true,
+    subscribe   => [
+      Package['gitlab-omnibus'],
+      Exec['gitlab_reconfigure'],
+    ],
   }
 
   # mount points for GitLab distro & data files

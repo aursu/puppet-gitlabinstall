@@ -1,6 +1,6 @@
 {
   "name": "aursu-gitlabinstall",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "author": "aursu",
   "summary": "Dedicated GitLab installation",
   "license": "Apache-2.0",
@@ -22,7 +22,7 @@
     },
     {
       "name": "puppet/nginx",
-      "version_requirement": ">= 2.0.0 < 3.0.0"
+      "version_requirement": ">= 2.0.0 < 4.0.0"
     },
     {
       "name": "puppetlabs/postgresql",
@@ -56,7 +56,7 @@
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 4.10.0 < 7.0.0"
+      "version_requirement": ">= 4.10.0 < 8.0.0"
     }
   ],
   "pdk-version": "1.18.0",

@@ -190,3 +190,16 @@ under module management
 * Updated puppet/gitlab version depenndency
 
 **Known Issues**
+
+## Release 1.7.3
+
+**Features**
+
+**Bugfixes**
+
+* Added `restorecon` command for workhorse socket to fix error
+  [crit] 26914#26914: *1 connect() to unix:/var/opt/gitlab/gitlab-workhorse/socket failed (13: Permission denied) while connecting to upstream
+* Added `gitlab-rake db:migrate` command to fix error described in
+  https://forum.gitlab.com/t/upgrading-from-13-9-4-to-13-10-0-results-in-an-error-500/50685/2
+
+**Known Issues**
