@@ -18,7 +18,6 @@ with externally managed Nginx, Postgres and Docker Registry.
 
 ## Setup
 
-
 ### What gitlabinstall affects **OPTIONAL**
 
 gitlabinstall installs gitlab-ce Omnibus package from https://packages.gitlab.com/gitlab/gitlab-ce.
@@ -28,7 +27,7 @@ Also it could manage Nginx setup (non-bundled) and Postgres setup (also non-bund
 
 SSL certificates management is also included
 
-### Setup Requirements **OPTIONAL**
+### Setup Requirements
 
 It requires to use custom fork of Puppet Nginx module located on GitHub.
 
@@ -37,7 +36,7 @@ For .fixtures.yml
 ```
 nginx:
   repo: https://github.com/aursu/puppet-nginx.git
-  ref: tags/v2.0.1-rc0.4
+  ref: tags/v3.0.1-rc0.2
 ```
 
 and for Puppetfile:
@@ -45,7 +44,7 @@ and for Puppetfile:
 ```
 mod 'nginx',
   :git => 'https://github.com/aursu/puppet-nginx.git',
-  :tag => 'v2.0.1-rc0.4'
+  :tag => 'v3.0.1-rc0.2'
 ```
 
 Also requires non-published on Puppet Forge module `aursu::lsys` which is set
@@ -56,18 +55,7 @@ Puppetfile setup:
 ```
 mod 'lsys',
   :git => 'https://github.com/aursu/puppet-lsys.git',
-  :tag => 'v0.5.4'
-```
-
-Also requires non-published on Puppet Forge module `aursu::dockerinstall` which is set
-of different Docker related features
-
-Puppetfile setup:
-
-```
-mod 'dockerinstall',
-  :git => 'https://github.com/aursu/puppet-dockerinstall.git',
-  :tag => 'v0.8.0'
+  :tag => 'v0.21.0'
 ```
 
 ### Beginning with gitlabinstall
@@ -94,6 +82,7 @@ Use it with registry installed on separate host and on the same host as PuppetDB
   class { 'gitlabinstall':
     external_url          => 'https://gitlab.domain.tld',
   }
+
   class { 'gitlabinstall::gitlab':
     cert_identity             => '*.domain.tld',
     # DevCI has PuppetDB which listen on 8080, PuppetDB could be used
@@ -113,6 +102,7 @@ Use it with registry on the same host:
   class { 'gitlabinstall':
     external_url          => 'https://gitlab.domain.tld',
   }
+
   class { 'gitlabinstall::gitlab':
     cert_identity             => '*.domain.tld',
     external_registry_service => true,
@@ -132,6 +122,7 @@ Basic setup:
     ldap_password         => 'secret',
     ldap_base             => 'ou=people,dc=gitlab,dc=example',
   }
+
   class { 'gitlabinstall::gitlab':
     cert_identity             => '*.domain.tld',
     external_registry_service => true,
@@ -145,6 +136,7 @@ With more LDAP settings:
   class { 'gitlabinstall':
     external_url          => 'https://gitlab.domain.tld',
   }
+
   class { 'gitlabinstall::ldap':
     host                  => 'ldap.mydomain.com',
     password              => 'secret',
@@ -152,6 +144,7 @@ With more LDAP settings:
 
     bind_dn               => 'CN=Gitlab,OU=Users,DC=domain,DC=com',
   }
+
   class { 'gitlabinstall::gitlab':
     cert_identity             => '*.domain.tld',
     external_registry_service => true,
