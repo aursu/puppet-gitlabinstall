@@ -57,7 +57,7 @@ define gitlabinstall::runner::service (
     $docker_extra_hosts = [ "${docker_host_name}:${docker_ipaddr}" ]
   }
   else  {
-    $docker_extra_hosts = []
+    $docker_extra_hosts = undef
   }
 
   $persistent_dir = "${service_runner_dir}/config"

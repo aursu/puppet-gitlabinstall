@@ -26,6 +26,11 @@ describe 'gitlabinstall::runner::service' do
       }
 
       it {
+        is_expected.to contain_dockerinstall__composeservice('gitlab/namevar')
+          .without_configuration(%r{extra_hosts})
+      }
+
+      it {
         is_expected.to contain_file('/srv/gitlab-runner/namevar')
           .with_ensure('directory')
       }
@@ -78,8 +83,6 @@ describe 'gitlabinstall::runner::service' do
           is_expected.to contain_dockerinstall__composeservice('gitlab/namevar')
             .with_configuration(%r{^[ ]{6}- /var/run/docker.sock:/var/run/docker.sock$})
         }
-
-        # "${persistent_dir}:/etc/gitlab-runner",
 
         it {
           is_expected.to contain_dockerinstall__composeservice('gitlab/namevar')
