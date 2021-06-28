@@ -203,3 +203,14 @@ under module management
   https://forum.gitlab.com/t/upgrading-from-13-9-4-to-13-10-0-results-in-an-error-500/50685/2
 
 **Known Issues**
+
+## Release 1.8.0
+
+**Features**
+
+* Added GitLab Runner docker service installation
+  (no Runner registration)
+
+**Bugfixes**
+
+**Known Issues**
