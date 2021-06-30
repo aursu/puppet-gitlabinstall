@@ -214,3 +214,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.8.1
+
+**Features**
+
+* Bugfix: decline empty array for runners service extra hosts
+
+**Bugfixes**
+
+**Known Issues**
