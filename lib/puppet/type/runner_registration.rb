@@ -5,32 +5,6 @@ Puppet::Type.newtype(:runner_registration) do
 
   VALID_SCHEMES = ['http', 'https'].freeze
 
-  # concurrent = 1
-  # check_interval = 0
-  #
-  # [session_server]
-  #   session_timeout = 1800
-  #
-  # [[runners]]
-  #   name = "build-runner"
-  #   url = "https://build.domain.com/"
-  #   token = "7ij2E77cgc65dJHFf6zo"
-  #   executor = "docker"
-  #   [runners.custom_build_dir]
-  #   [runners.cache]
-  #     [runners.cache.s3]
-  #     [runners.cache.gcs]
-  #     [runners.cache.azure]
-  #   [runners.docker]
-  #     tls_verify = false
-  #     image = "centos:7"
-  #     privileged = false
-  #     disable_entrypoint_overwrite = false
-  #     oom_kill_disable = false
-  #     disable_cache = false
-  #     volumes = ["/cache"]
-  #     shm_size = 0
-
   # docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner:v14.0.1 register \
   # --non-interactive \
   # --executor "docker" \
@@ -42,11 +16,6 @@ Puppet::Type.newtype(:runner_registration) do
   # --run-untagged="true" \
   # --locked="false" \
   # --access-level="not_protected"
-
-  # curl --request POST "https://build.domain.com/api/v4/runners" \
-  # --form "token=biQgCE4CYrKucV6zsKxW" --form "description=build-runner" \
-  # --form "tag_list=rpm,rpmb,bsys,build" --form "run_untagged=true" \
-  # --form "locked=false" --form "access_level=not_protected"
 
   ensurable do
     desc 'Register or delete runner.'
@@ -73,6 +42,23 @@ Puppet::Type.newtype(:runner_registration) do
     validate do |value|
       raise ArgumentError, _('Registration token must be provided as a string.') unless value.is_a?(String)
       raise ArgumentError, _('Registration token could not be empty') if value.empty?
+    end
+  end
+
+  newproperty(:gitlab_url) do
+    desc 'GitLab URL'
+
+    validate do |value|
+      parsed = URI.parse(value)
+
+      unless VALID_SCHEMES.include?(parsed.scheme)
+        raise _('Must be a valid URL')
+      end
+    end
+
+    munge do |value|
+      # remove trailing slashes
+      value.gsub(%r{/*$}, '')
     end
   end
 
@@ -140,27 +126,13 @@ Puppet::Type.newtype(:runner_registration) do
       raise ArgumentError, _('Registration token could not be empty') if value.empty?
     end
 
-    def insync?(_is)
+    def insync?(is)
+      insync = super(is)
       provider.auth_insync?
     end
   end
 
-  newproperty(:gitlab_url) do
-    desc 'GitLab URL'
 
-    validate do |value|
-      parsed = URI.parse(value)
-
-      unless VALID_SCHEMES.include?(parsed.scheme)
-        raise _('Must be a valid URL')
-      end
-    end
-
-    munge do |value|
-      # remove trailing slashes
-      value.gsub(%r{/*$}, '')
-    end
-  end
 
   autobefore(:file) do
     self[:config]
@@ -177,7 +149,7 @@ Puppet::Type.newtype(:runner_registration) do
                     path: path,
                     owner: 'root',
                     group: 'root',
-                    mode: '0600',
+                    mode: '0644',
                   }
                 else
                   {
@@ -199,8 +171,12 @@ Puppet::Type.newtype(:runner_registration) do
   end
 
   validate do
+    config = self[:config]
+    gitlab_url = self[:gitlab_url]
     registration_token = self[:registration_token]
 
+    raise Puppet::Error, 'Runner cconfiguration path must be set' unless config
+    raise Puppet::Error, 'GitLab URL must be provided' unless gitlab_url
     raise Puppet::Error, 'Runner registration token must be provided' unless registration_token
   end
 end
