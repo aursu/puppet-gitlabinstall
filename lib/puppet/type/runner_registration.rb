@@ -34,6 +34,12 @@ Puppet::Type.newtype(:runner_registration) do
     desc 'Runner desription'
   end
 
+  newparam(:description) do
+    desc 'The description of a runner'
+
+    defaultto { @resource[:name] }
+  end
+
   newparam(:registration_token) do
     desc 'Runner registration token'
 
@@ -43,29 +49,6 @@ Puppet::Type.newtype(:runner_registration) do
       raise ArgumentError, _('Registration token must be provided as a string.') unless value.is_a?(String)
       raise ArgumentError, _('Registration token could not be empty') if value.empty?
     end
-  end
-
-  newproperty(:gitlab_url) do
-    desc 'GitLab URL'
-
-    validate do |value|
-      parsed = URI.parse(value)
-
-      unless VALID_SCHEMES.include?(parsed.scheme)
-        raise _('Must be a valid URL')
-      end
-    end
-
-    munge do |value|
-      # remove trailing slashes
-      value.gsub(%r{/*$}, '')
-    end
-  end
-
-  newparam(:description) do
-    desc 'The description of a runner'
-
-    defaultto { @resource[:name] }
   end
 
   newparam(:tag_list) do
@@ -115,6 +98,23 @@ Puppet::Type.newtype(:runner_registration) do
     end
   end
 
+  newproperty(:gitlab_url) do
+    desc 'GitLab URL'
+
+    validate do |value|
+      parsed = URI.parse(value)
+
+      unless VALID_SCHEMES.include?(parsed.scheme)
+        raise _('Must be a valid URL')
+      end
+    end
+
+    munge do |value|
+      # remove trailing slashes
+      value.gsub(%r{/*$}, '')
+    end
+  end
+
   # Authentication token
   newproperty(:authentication_token) do
     desc 'Token used to authenticate the runner with the GitLab instance'
@@ -132,42 +132,29 @@ Puppet::Type.newtype(:runner_registration) do
     end
   end
 
+  newproperty(:executor) do
+    desc 'Select how a project should be built.'
 
+    newvalues('shell', 'docker', 'docker-windows', 'docker-ssh', 'ssh', 'parallels', 'virtualbox', 'docker+machine', 'docker-ssh+machine', 'kubernetes')
 
-  autobefore(:file) do
-    self[:config]
+    defaultto 'docker'
+
+    munge do |value|
+      value.to_s
+    end
   end
 
-  # This will generate additional File[path] resource to setuo permissions
-  # or delete token file
-  def generate
-    target = self[:config]
+  newproperty(:docker_image) do
+    desc 'The image to run jobs with.'
 
-    file_opts = if self[:ensure] == :present
-                  {
-                    ensure: :file,
-                    path: path,
-                    owner: 'root',
-                    group: 'root',
-                    mode: '0644',
-                  }
-                else
-                  {
-                    ensure: :absent,
-                    path: path,
-                  }
-                end
-
-    metaparams = Puppet::Type.metaparams
-    excluded_metaparams = [:before, :notify, :require, :subscribe, :tag]
-
-    metaparams.reject! { |param| excluded_metaparams.include?(param) }
-
-    metaparams.each do |metaparam|
-      file_opts[metaparam] = self[metaparam] unless self[metaparam].nil?
+    validate do |value|
+      raise ArgumentError, _('Docker image name must be provided as a string.') unless value.is_a?(String)
+      raise ArgumentError, _('Docker image name could not be empty') if value.empty?
     end
+  end
 
-    [Puppet::Type.type(:file).new(file_opts)]
+  autorequire(:file) do
+    self[:config]
   end
 
   validate do

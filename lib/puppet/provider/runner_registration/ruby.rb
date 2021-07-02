@@ -11,9 +11,6 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     },
     'runners' => [
       {
-        # 'name' => '',
-        # 'url' => '',
-        # 'token' => '',
         'executor' => 'docker',
         'custom_build_dir' => {},
         'cache' => {
@@ -121,33 +118,32 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   end
 
   # authentication token check
-  def self.auth_insync?(gitlab_url, token)
+  def self.auth_insync?(url, token)
     auth_data  = URI.encode_www_form(token: token)
-    verify_url = "#{gitlab_url}/api/v4/runners/verify"
+    verify_url = "#{url}/api/v4/runners/verify"
 
     code, _header, _body = url_post(verify_url, auth_data)
 
     code.to_i == 200
   end
 
-  def self.register(gitlab_url, registration)
+  def self.register(url, registration)
     return {} unless  registration.is_a? Hash && registration['token']
 
     reg_data  = URI.encode_www_form(registration)
-    reg_url = "#{gitlab_url}/api/v4/runners"
+    reg_url = "#{url}/api/v4/runners"
 
     # https://docs.gitlab.com/ee/api/runners.html#register-a-new-runner
     code, _header, body = url_post(reg_url, reg_data)
     auth_data           = JSON.parse(body) if body
 
-    return {} unless code.to_i == 201
-    return auth_data if auth_data['id'] && auth_data['token']
+    return auth_data if code.to_i == 201 && auth_data['id'] && auth_data['token']
     return {}
   end
 
-  def self.delete(gitlab_url, token)
+  def self.delete(url, token)
     auth_data  = URI.encode_www_form(token: token)
-    reg_url = "#{gitlab_url}/api/v4/runners"
+    reg_url = "#{url}/api/v4/runners"
 
     code, _header, _body = url_delete(reg_url, auth_data)
 
@@ -167,30 +163,10 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
 
     data = self.class.config_data(config_path)
     @data = if data.empty?
-               {}
-             else
-               data
-             end
-  end
-
-  def runner_data
-    config_data['runners'].first
-  end
-
-  def authentication_token
-    runner_data['token']
-  end
-
-  def gitlab_url
-    runner_data['url']
-  end
-
-  # authentication token check
-  def auth_insync?
-    url   = @resource.value(:gitlab_url)
-    token = @resource.value(:authentication_token)
-
-    return self.class.auth_insync?(url, token)
+              {}
+            else
+              data
+            end
   end
 
   def generate_config
@@ -199,6 +175,24 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
 
   def store_content
     File.open(config_path, 'w') { |f| f.write(config_content) }
+  end
+
+  def runner_data
+    config_data['runners'] ||= [{}]
+    config_data['runners'].first
+  end
+
+  def docker_data
+    runner_data['docker'] ||= {}
+    runner_data['docker']
+  end
+
+  # authentication token check
+  def auth_insync?
+    url   = @resource.value(:gitlab_url)
+    token = @resource.value(:authentication_token)
+
+    return self.class.auth_insync?(url, token)
   end
 
   def exists?
@@ -234,8 +228,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   end
 
   def register_runner
-    token        = @resource.value(:registration_token)
-    gitlab_url   = @resource.value(:gitlab_url)
+    token = @resource.value(:registration_token)
+    url   = @resource.value(:gitlab_url)
 
     desc         = @resource.value(:description)
     tag_list     = @resource.value(:tag_list).join(',')
@@ -251,7 +245,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     registration[:access_level] = access_level if access_level
 
     # https://docs.gitlab.com/ee/api/runners.html#register-a-new-runner
-    self.class.register(gitlab_url, registration)
+    self.class.register(url, registration)
   end
 
   # curl --request POST "https://build.domain.com/api/v4/runners" \
@@ -263,15 +257,19 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     # if no config file - register runner
     config_path  = @resource[:config]
     auth_token   = @resource.value(:authentication_token)
-    gitlab_url   = @resource.value(:gitlab_url)
+    url          = @resource.value(:gitlab_url)
+    executor     = @resource.value(:executor)
+    docker_image = @resource.value(:docker_image)
 
     # propagate default configuration file content if not exists
     if config_data.empty?
       @data = DEFAULT_CONFIG
     end
 
-    runner_data['url']  = gitlab_url
+    runner_data['url']  = url
     runner_data['name'] = name
+    runner_data['executor'] = executor if executor
+    docker_data['image'] = docker_image if docker_image
 
     # already registered - just update configuration file
     if auth_token && auth_insync?
@@ -286,8 +284,64 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     store_content
   end
 
+  def authentication_token
+    runner_data['token']
+  end
+
+  def authentication_token=(token)
+    @property_flush[:authentication_token] = token
+  end
+
+  def gitlab_url
+    runner_data['url']
+  end
+
+  def gitlab_url=(url)
+    @property_flush[:gitlab_url] = url
+  end
+
+  def executor
+    runner_data['executor']
+  end
+
+  def executor=(exec)
+    @property_flush[:executor] = exec
+  end
+
+  def docker_image
+    runner_data['docker']['image']
+  end
+
+  def docker_image=(image)
+    @property_flush[:docker_image] = image
+  end
+
   def flush
     return if @property_flush.empty?
+
+    url   = @property_flush[:gitlab_url] || @resource.value(:gitlab_url) || gitlab_url
+    token = @property_flush[:authentication_token] || @resource.value(:authentication_token) || authentication_token
+
+    if @property_flush[:gitlab_url]
+      if token && self.class.auth_insync?(url, token)
+        runner_data['url']   = url
+        runner_data['token'] = token
+      else
+        auth_data = register_runner
+        unless auth_data.empty?
+          runner_data['url']   = url
+          runner_data['token'] = auth_data['token']
+        end
+      end
+    elsif @property_flush[:authentication_token]
+      if self.class.auth_insync?(url, token)
+        runner_data['url']   = url
+        runner_data['token'] = token
+      end
+    end
+
+    runner_data['executor'] = @property_flush[:executor] if @property_flush[:executor]
+    docker_data['image'] = @property_flush[:docker_image] if @property_flush[:docker_image]
 
     generate_content
     store_content
