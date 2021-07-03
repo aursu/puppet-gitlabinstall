@@ -5,18 +5,38 @@
 # @example
 #   gitlabinstall::runner::service { 'namevar': }
 define gitlabinstall::runner::service (
-  String  $compose_service = $name,
-  String  $compose_project = 'gitlab',
-  String  $docker_image    = 'gitlab/gitlab-runner:v14.0.1',
-  Boolean $manage_image    = false,
+  String  $compose_service      = $name,
+  String  $compose_project      = 'gitlab',
+  String  $docker_image         = 'gitlab/gitlab-runner:v14.0.1',
+  Boolean $manage_image         = false,
   Optional[Stdlib::Host]
-          $docker_host     = undef,
+          $docker_host          = undef,
   Optional[Stdlib::IP::Address]
-          $docker_ipaddr   = undef,
+          $docker_ipaddr        = undef,
   Optional[Stdlib::Unixpath]
-          $docker_tlsdir   = undef,
+          $docker_tlsdir        = undef,
   Optional[Stdlib::Unixpath]
-          $runner_dir      = undef,
+          $runner_dir           = undef,
+  Boolean $register             = true,
+  Optional[String]
+          $runner_name          = $name,
+  Optional[String]
+          $runner_description   = $name,
+  Optional[String]
+          $registration_token   = undef,
+  Optional[Array[String]]
+          $runner_tag_list      = undef,
+  Boolean $run_untagged         = true,
+  Boolean $runner_locked        = false,
+  Enum['not_protected', 'ref_protected']
+          $runner_access_level  = 'not_protected',
+  Optional[Stdlib::HTTPUrl]
+          $gitlab_url           = undef,
+  Optional[String]
+          $authentication_token = undef,
+  String  $runner_executor      = 'docker',
+  Optional[String]
+          $runner_dokcer_image  = undef,
 )
 {
   include dockerinstall::params
@@ -84,5 +104,22 @@ define gitlabinstall::runner::service (
                         "${persistent_dir}:/etc/gitlab-runner",
                       ],
     require            => File[$persistent_dir],
+  }
+
+  if $register {
+    runner_registration { $runner_name:
+      ensure               => present,
+      config               => "${persistent_dir}/config.toml",
+      description          => $runner_description,
+      authentication_token => $authentication_token,
+      registration_token   => $registration_token,
+      tag_list             => $runner_tag_list,
+      run_untagged         => $run_untagged,
+      locked               => $runner_locked,
+      access_level         => $runner_access_level,
+      gitlab_url           => $gitlab_url,
+      executor             => $runner_executor,
+      docker_image         => $runner_dokcer_image,
+    }
   }
 }

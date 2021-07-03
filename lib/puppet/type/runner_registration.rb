@@ -9,9 +9,9 @@ Puppet::Type.newtype(:runner_registration) do
   # --non-interactive \
   # --executor "docker" \
   # --docker-image centos:7 \
-  # --url "https://build.domain.com/" \
+  # --url "https://gitlab.domain.com/" \
   # --registration-token "biQgCE4CYrKucV6zsKxW" \
-  # --description "build-runner" \
+  # --description "gitlab-runner" \
   # --tag-list "rpm,rpmb,bsys,build" \
   # --run-untagged="true" \
   # --locked="false" \
