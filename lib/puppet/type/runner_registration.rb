@@ -72,13 +72,13 @@ Puppet::Type.newtype(:runner_registration) do
   newparam(:run_untagged, boolean: true, parent: Puppet::Parameter::Boolean) do
     desc 'Flag indicating the runner can execute untagged jobs'
 
-    defaultto :true
+    defaultto true
   end
 
   newparam(:locked, boolean: true, parent: Puppet::Parameter::Boolean) do
     desc 'Flag indicating the runner is locked'
 
-    defaultto :false
+    defaultto false
   end
 
   newparam(:access_level) do
