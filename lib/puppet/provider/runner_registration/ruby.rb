@@ -234,7 +234,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     url   = @resource.value(:gitlab_url)
 
     desc         = @resource.value(:description)
-    tag_list     = @resource.value(:tag_list).join(',')
+    tag_list     = @resource.value(:tag_list)
     access_level = @resource.value(:access_level)
     run_untagged = @resource.run_untagged?
     locked       = @resource.locked?
