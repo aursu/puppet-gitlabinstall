@@ -263,7 +263,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     docker_image = @resource.value(:docker_image)
 
     # propagate default configuration file content if not exists
-    if config_data.empty?
+    # runner_data and runner_data methods make preset
+    if config_data.empty? || config_data == { 'runners' => [{ }] } || config_data == { 'runners' => [{ 'docker' => { } }] }
       @data = DEFAULT_CONFIG
     end
 
