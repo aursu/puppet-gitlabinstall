@@ -12,4 +12,9 @@ class gitlabinstall::runner::base (
   file { $service_dir:
     ensure => directory,
   }
+
+  package { 'toml':
+    ensure   => 'installed',
+    provider => 'puppet_gem',
+  }
 }
