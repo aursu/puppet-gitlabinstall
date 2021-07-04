@@ -17,11 +17,11 @@ define gitlabinstall::runner::service (
           $docker_tlsdir        = undef,
   Optional[Stdlib::Unixpath]
           $runner_dir           = undef,
-  Boolean $register             = true,
+  Boolean $register             = false,
   Optional[String]
           $runner_name          = $name,
   Optional[String]
-          $runner_description   = $name,
+          $runner_description   = $runner_name,
   Optional[String]
           $registration_token   = undef,
   Optional[Array[String]]

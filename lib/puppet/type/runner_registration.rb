@@ -3,7 +3,7 @@ require 'uri'
 Puppet::Type.newtype(:runner_registration) do
   @doc = 'GitLab runner registration'
 
-  VALID_SCHEMES = ['http', 'https'].freeze
+  VALID_GITLAB_SCHEMES = ['http', 'https'].freeze
 
   # docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner:v14.0.1 register \
   # --non-interactive \
@@ -94,7 +94,7 @@ Puppet::Type.newtype(:runner_registration) do
     defaultto '/srv/gitlab-runner/config/config.toml'
 
     validate do |value|
-      raise ArgumentError, _('Path to GitLab Runner configuration file must be absolute.') unless Puppet::Util.absolute_path?(path)
+      raise ArgumentError, _('Path to GitLab Runner configuration file must be absolute.') unless Puppet::Util.absolute_path?(value)
     end
   end
 
@@ -104,7 +104,7 @@ Puppet::Type.newtype(:runner_registration) do
     validate do |value|
       parsed = URI.parse(value)
 
-      unless VALID_SCHEMES.include?(parsed.scheme)
+      unless VALID_GITLAB_SCHEMES.include?(parsed.scheme)
         raise _('Must be a valid URL')
       end
     end
@@ -124,11 +124,6 @@ Puppet::Type.newtype(:runner_registration) do
     validate do |value|
       raise ArgumentError, _('Registration token must be provided as a string.') unless value.is_a?(String)
       raise ArgumentError, _('Registration token could not be empty') if value.empty?
-    end
-
-    def insync?(is)
-      insync = super(is)
-      provider.auth_insync?
     end
   end
 

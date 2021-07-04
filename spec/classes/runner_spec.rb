@@ -13,6 +13,12 @@ describe 'gitlabinstall::runner' do
   on_supported_os.each do |os, os_facts|
     context "on #{os}" do
       let(:facts) { os_facts }
+      let(:params) do
+        {
+          gitlab_url: 'https://gitlab',
+          registration_token: 'QQnhTdSTszmbJF',
+        }
+      end
 
       it { is_expected.to compile }
 
@@ -25,7 +31,6 @@ describe 'gitlabinstall::runner' do
       it {
         is_expected.to contain_dockerimage('gitlab/gitlab-runner:v14.0.1')
       }
-
 
       it {
         is_expected.to contain_dockerinstall__composeservice('gitlab/runner')

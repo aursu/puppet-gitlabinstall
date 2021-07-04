@@ -7,7 +7,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     'concurrent' => 1,
     'check_interval' => 0,
     'session_server' => {
-      'session_timeout' => 1800
+      'session_timeout' => 1800,
     },
     'runners' => [
       {
@@ -16,7 +16,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
         'cache' => {
           's3' => {},
           'gcs' => {},
-          'azure' => {}
+          'azure' => {},
         },
         'docker' => {
           'tls_verify' => false,
@@ -26,10 +26,10 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
           'oom_kill_disable' => false,
           'disable_cache' => false,
           'volumes' => ['/cache'],
-          'shm_size' => 0
-        }
-      }
-    ]
+          'shm_size' => 0,
+        },
+      },
+    ],
   }.freeze
 
   confine true: begin
@@ -128,9 +128,9 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   end
 
   def self.register(url, registration)
-    return {} unless  registration.is_a? Hash && registration['token']
+    return {} unless registration.is_a?(Hash) && registration['token']
 
-    reg_data  = URI.encode_www_form(registration)
+    reg_data = URI.encode_www_form(registration)
     reg_url = "#{url}/api/v4/runners"
 
     # https://docs.gitlab.com/ee/api/runners.html#register-a-new-runner
@@ -138,11 +138,11 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     auth_data           = JSON.parse(body) if body
 
     return auth_data if code.to_i == 201 && auth_data['id'] && auth_data['token']
-    return {}
+    {}
   end
 
   def self.delete(url, token)
-    auth_data  = URI.encode_www_form(token: token)
+    auth_data = URI.encode_www_form(token: token)
     reg_url = "#{url}/api/v4/runners"
 
     code, _header, _body = url_delete(reg_url, auth_data)
@@ -192,7 +192,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     url   = @resource.value(:gitlab_url)
     token = @resource.value(:authentication_token)
 
-    return self.class.auth_insync?(url, token)
+    self.class.auth_insync?(url, token)
   end
 
   def exists?
@@ -206,6 +206,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
 
     # no auth - no registration
     return false unless self.class.auth_insync?(gitlab_url, authentication_token)
+
+    true
   end
 
   # authentication token check
@@ -213,7 +215,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     url   = @resource.value(:gitlab_url)
     token = @resource.value(:authentication_token)
 
-    return self.class.delete(url, token)
+    self.class.delete(url, token)
   end
 
   def destroy
@@ -255,7 +257,6 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   def create
     name         = @resource[:name]
     # if no config file - register runner
-    config_path  = @resource[:config]
     auth_token   = @resource.value(:authentication_token)
     url          = @resource.value(:gitlab_url)
     executor     = @resource.value(:executor)
