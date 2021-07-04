@@ -128,7 +128,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   end
 
   def self.register(url, registration)
-    return {} unless registration.is_a?(Hash) && registration['token']
+    return {} unless registration.is_a?(Hash) && registration[:token]
 
     reg_data = URI.encode_www_form(registration)
     reg_url = "#{url}/api/v4/runners"
@@ -236,15 +236,15 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     desc         = @resource.value(:description)
     tag_list     = @resource.value(:tag_list)
     access_level = @resource.value(:access_level)
-    run_untagged = @resource.run_untagged?
-    locked       = @resource.locked?
+    run_untagged = @resource[:run_untagged]
+    locked       = @resource[:locked]
 
     registration                = { token: token }
     registration[:description]  = desc if desc
     registration[:tag_list]     = tag_list.join(',') if tag_list && tag_list.is_a?(Array)
     registration[:run_untagged] = run_untagged
     registration[:locked]       = locked
-    registration[:access_level] = access_level if access_level
+    registration[:access_level] = access_level.to_s if access_level
 
     # https://docs.gitlab.com/ee/api/runners.html#register-a-new-runner
     self.class.register(url, registration)
