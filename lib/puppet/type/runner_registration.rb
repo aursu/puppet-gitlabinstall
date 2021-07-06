@@ -5,17 +5,28 @@ Puppet::Type.newtype(:runner_registration) do
 
   VALID_GITLAB_SCHEMES = ['http', 'https'].freeze
 
-  # docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner:v14.0.1 register \
-  # --non-interactive \
-  # --executor "docker" \
-  # --docker-image centos:7 \
-  # --url "https://gitlab.domain.com/" \
-  # --registration-token "biQgCE4CYrKucV6zsKxW" \
-  # --description "gitlab-runner" \
-  # --tag-list "rpm,rpmb,bsys,build" \
-  # --run-untagged="true" \
-  # --locked="false" \
-  # --access-level="not_protected"
+  # Parrent class for array property
+  class ArrayProperty < Puppet::Property
+    validate do |value|
+      if value.is_a? Array
+        value.each do |elem|
+          status, errmsg = validate_value?(elem)
+          raise ArgumentError, errmsg unless status
+        end
+      else
+        status, errmsg = validate_value?(value)
+        raise ArgumentError, errmsg unless status
+      end
+    end
+
+    munge do |value|
+      [value].flatten.compact
+    end
+
+    def validate_value?(_value)
+      true
+    end
+  end
 
   ensurable do
     desc 'Register or delete runner.'
@@ -136,6 +147,45 @@ Puppet::Type.newtype(:runner_registration) do
 
     munge do |value|
       value.to_s
+    end
+  end
+
+  newproperty(:environment, parent: ArrayProperty) do
+    desc 'Append or overwrite environment variables for runner'
+
+    def validate_value?(value)
+      return false, _("Environment variable #{value} must start with valid variable name") unless value.to_s =~ %r{^[A-Za-z][_A-Za-z0-9]*=}
+      true
+    end
+  end
+
+  newproperty(:docker_volumes, parent: ArrayProperty) do
+    desc 'Additional volumes that should be mounted'
+
+    def validate_value?(value)
+      host, cont, _perm = value.split(':', 3)
+      if cont
+        return false, _("Mount path inside container must be a full path (not #{cont})") unless Puppet::Util.absolute_path?(cont)
+        return true if Puppet::Util.absolute_path?(host)
+        return true if host.to_s =~ %r{^[a-zA-Z0-9][a-zA-Z0-9_.-]*$}
+        return false, _("#{host} includes invalid characters for a local volume name or it is not a full path")
+      else
+        return false, _("Mount path inside container must be a full path (not #{value})") unless Puppet::Util.absolute_path?(value)
+        true
+      end
+    end
+  end
+
+  newproperty(:extra_hosts, parent: ArrayProperty) do
+    desc 'Hosts that should be defined in container environment.'
+
+    def validate_value?(value)
+      dom, addr = value.split(':', 2)
+
+      return false, _("Extra host must contain a valid hostname (not #{dom})") unless provider.validate_domain(dom)
+      return false, _("Extra host must contain a valid IP address (not #{addr})") unless provider.validate_ip(addr)
+
+      true
     end
   end
 

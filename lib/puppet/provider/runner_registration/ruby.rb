@@ -1,4 +1,5 @@
 require 'json'
+require 'ipaddr'
 
 Puppet::Type.type(:runner_registration).provide(:ruby) do
   @doc = 'Registry auth token provider'
@@ -43,6 +44,18 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   def initialize(value = {})
     super(value)
     @property_flush = {}
+  end
+
+  def self.validate_ip(ip)
+    return nil unless ip
+    IPAddr.new(ip)
+  rescue ArgumentError
+    nil
+  end
+
+  def self.validate_domain(dom)
+    return nil unless dom
+    %r{^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$} =~ dom.downcase
   end
 
   # configuration file content
@@ -261,10 +274,13 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     url          = @resource.value(:gitlab_url)
     executor     = @resource.value(:executor)
     docker_image = @resource.value(:docker_image)
+    environment  = @resource.value(:environment)
+    volumes      = @resource.value(:docker_volumes)
+    extra_hosts  = @resource.value(:extra_hosts)
 
     # propagate default configuration file content if not exists
     # runner_data and runner_data methods make preset
-    if config_data.empty? || config_data == { 'runners' => [{ }] } || config_data == { 'runners' => [{ 'docker' => { } }] }
+    if config_data.empty? || config_data == { 'runners' => [{}] } || config_data == { 'runners' => [{ 'docker' => {} }] }
       @data = DEFAULT_CONFIG
     end
 
@@ -272,6 +288,9 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     runner_data['name'] = name
     runner_data['executor'] = executor if executor
     docker_data['image'] = docker_image if docker_image
+    runner_data['environment'] = environment if environment
+    docker_data['volumes'] = volumes if volumes
+    docker_data['extra_hosts'] = extra_hosts if extra_hosts
 
     # already registered - just update configuration file
     if auth_token && auth_insync?
@@ -311,11 +330,35 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   end
 
   def docker_image
-    runner_data['docker']['image']
+    docker_data['image']
   end
 
   def docker_image=(image)
     @property_flush[:docker_image] = image
+  end
+
+  def environment
+    runner_data['environment']
+  end
+
+  def environment=(env)
+    @property_flush[:environment] = env
+  end
+
+  def docker_volumes
+    docker_data['volumes']
+  end
+
+  def docker_volumes=(volumes)
+    @property_flush[:docker_volumes] = volumes
+  end
+
+  def extra_hosts
+    docker_data['extra_hosts']
+  end
+
+  def extra_hosts=(hosts)
+    @property_flush[:extra_hosts] = hosts
   end
 
   def flush
@@ -343,11 +386,22 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     end
 
     runner_data['executor'] = @property_flush[:executor] if @property_flush[:executor]
+    runner_data['environment'] = @property_flush[:environment] if @property_flush[:environment]
     docker_data['image'] = @property_flush[:docker_image] if @property_flush[:docker_image]
+    docker_data['volumes'] = @property_flush[:docker_volumes] if @property_flush[:docker_volumes]
+    docker_data['extra_hosts'] = @property_flush[:extra_hosts] if @property_flush[:extra_hosts]
 
     generate_content
     store_content
 
     @property_flush.clear
+  end
+
+  def validate_ip(ip)
+    self.class.validate_ip(ip)
+  end
+
+  def validate_domain(dom)
+    self.class.validate_domain(dom)
   end
 end
