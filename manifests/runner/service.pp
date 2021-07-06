@@ -120,6 +120,17 @@ define gitlabinstall::runner::service (
       gitlab_url           => $gitlab_url,
       executor             => $runner_executor,
       docker_image         => $runner_dokcer_image,
+      environment          => [
+        'DOCKER_CERT_PATH=/certs/client',
+        'DOCKER_TLS_VERIFY=1',
+        "DOCKER_HOST=${docker_host_tcp}"
+      ],
+      docker_volume        => [
+        '/cache',
+        '/etc/docker/certs.d:/etc/docker/certs.d',
+        "${docker_tlsdir_mount}:/certs/client",
+      ],
+      extra_hosts          => $docker_extra_hosts,
     }
   }
 }
