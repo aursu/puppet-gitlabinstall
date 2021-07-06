@@ -275,7 +275,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     executor     = @resource.value(:executor)
     docker_image = @resource.value(:docker_image)
     environment  = @resource.value(:environment)
-    volumes      = @resource.value(:docker_volumes)
+    volumes      = @resource.value(:docker_volume)
     extra_hosts  = @resource.value(:extra_hosts)
 
     # propagate default configuration file content if not exists
@@ -345,12 +345,12 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     @property_flush[:environment] = env
   end
 
-  def docker_volumes
+  def docker_volume
     docker_data['volumes']
   end
 
-  def docker_volumes=(volumes)
-    @property_flush[:docker_volumes] = volumes
+  def docker_volume=(volumes)
+    @property_flush[:docker_volume] = volumes
   end
 
   def extra_hosts
@@ -388,7 +388,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     runner_data['executor'] = @property_flush[:executor] if @property_flush[:executor]
     runner_data['environment'] = @property_flush[:environment] if @property_flush[:environment]
     docker_data['image'] = @property_flush[:docker_image] if @property_flush[:docker_image]
-    docker_data['volumes'] = @property_flush[:docker_volumes] if @property_flush[:docker_volumes]
+    docker_data['volumes'] = @property_flush[:docker_volume] if @property_flush[:docker_volume]
     docker_data['extra_hosts'] = @property_flush[:extra_hosts] if @property_flush[:extra_hosts]
 
     generate_content
