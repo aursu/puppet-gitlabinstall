@@ -8,19 +8,15 @@ Puppet::Type.newtype(:runner_registration) do
   # Parrent class for array property
   class ArrayProperty < Puppet::Property
     validate do |value|
-      if value.is_a? Array
-        value.each do |elem|
-          status, errmsg = validate_value?(elem)
-          raise ArgumentError, errmsg unless status
-        end
-      else
-        status, errmsg = validate_value?(value)
-        raise ArgumentError, errmsg unless status
-      end
+      raise ArgumentError, _('Value must be provided as a string.') unless value.is_a?(String)
+      raise ArgumentError, _('Value can not be empty') if value.empty?
+
+      status, errmsg = validate_value?(value)
+      raise ArgumentError, errmsg unless status
     end
 
     munge do |value|
-      [value].flatten.compact
+      value.to_s
     end
 
     def validate_value?(_value)
@@ -150,7 +146,7 @@ Puppet::Type.newtype(:runner_registration) do
     end
   end
 
-  newproperty(:environment, parent: ArrayProperty) do
+  newproperty(:environment, array_matching: :all, parent: ArrayProperty) do
     desc 'Append or overwrite environment variables for runner'
 
     def validate_value?(value)
@@ -159,7 +155,7 @@ Puppet::Type.newtype(:runner_registration) do
     end
   end
 
-  newproperty(:docker_volume, parent: ArrayProperty) do
+  newproperty(:docker_volume, array_matching: :all, parent: ArrayProperty) do
     desc 'Additional volumes that should be mounted'
 
     def validate_value?(value)
@@ -176,7 +172,7 @@ Puppet::Type.newtype(:runner_registration) do
     end
   end
 
-  newproperty(:extra_hosts, parent: ArrayProperty) do
+  newproperty(:extra_hosts, array_matching: :all, parent: ArrayProperty) do
     desc 'Hosts that should be defined in container environment.'
 
     def validate_value?(value)

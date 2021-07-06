@@ -391,7 +391,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     docker_data['volumes'] = @property_flush[:docker_volume] if @property_flush[:docker_volume]
     docker_data['extra_hosts'] = @property_flush[:extra_hosts] if @property_flush[:extra_hosts]
 
-    generate_content
+    generate_config
     store_content
 
     @property_flush.clear
