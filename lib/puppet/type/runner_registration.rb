@@ -159,7 +159,7 @@ Puppet::Type.newtype(:runner_registration) do
     end
   end
 
-  newproperty(:docker_volumes, parent: ArrayProperty) do
+  newproperty(:docker_volume, parent: ArrayProperty) do
     desc 'Additional volumes that should be mounted'
 
     def validate_value?(value)
