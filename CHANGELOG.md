@@ -224,3 +224,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.0
+
+**Features**
+
+* Added runner registration
+
+**Bugfixes**
+
+**Known Issues**
