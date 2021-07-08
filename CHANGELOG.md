@@ -234,3 +234,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.1
+
+**Features**
+
+* Moved default SSL settings into parameters
+
+**Bugfixes**
+
+**Known Issues**
