@@ -40,6 +40,13 @@ class gitlabinstall::nginx (
           $ssl_cert_path         = undef,
   Optional[String]
           $ssl_key_path          = undef,
+  Hash[
+    Variant[Enum['ssl','http2'], Pattern[/^ssl_/]],
+    Variant[Boolean, String,
+      # ssl_add_header for the moment only Strict-Transport-Security
+      Hash[Enum['Strict-Transport-Security'], String]
+    ]
+  ]       $ssl_settings          = $gitlabinstall::params::ssl_settings,
   Boolean $manage_document_root  = false,
   Array[Stdlib::IP::Address]
           $monitoring_whitelist  = $gitlabinstall::monitoring_whitelist,
@@ -242,55 +249,52 @@ class gitlabinstall::nginx (
     },
   }
 
+  $ssl_enable = {
+    ssl      => $ssl,
+    http2    => $ssl,
+    ssl_cert => $ssl_cert_path,
+    ssl_key  => $ssl_key_path,
+  }
+
   # setup GitLab nginx main config
   nginx::resource::server { 'gitlab-http':
-    ssl                       => $ssl,
-    http2                     => $ssl,
-    ssl_cert                  => $ssl_cert_path,
-    ssl_key                   => $ssl_key_path,
-    ssl_session_timeout       => '1d',
-    ssl_cache                 => 'shared:SSL:50m',
-    ssl_prefer_server_ciphers => true,
-    ssl_protocols             => 'TLSv1.2',
-    ssl_ciphers               => 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256', # lint:ignore:140chars
-    ssl_stapling              => true,
-    ssl_stapling_verify       => true,
-    listen_ip                 => '*',
-    listen_port               => $listen_port,
-    server_name               => [
+    *                    => $ssl_settings + $ssl_enable,
+    listen_ip            => '*',
+    listen_port          => $listen_port,
+    server_name          => [
         $server_name,
     ],
     # Increase this if you want to upload large attachments
     # Or if you want to accept large git objects over http
-    client_max_body_size      => 0,
+    client_max_body_size => 0,
     # HSTS Config
     # https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
-    add_header                => {
+    add_header           => {
         'Strict-Transport-Security' => 'max-age=31536000',
     },
     # Individual nginx logs for this GitLab vhost
-    access_log                => "${nginx_log_directory}/gitlab_access.log",
-    format_log                => 'gitlab_access',
-    error_log                 => "${nginx_log_directory}/gitlab_error.log",
-    raw_prepend               => [
+    access_log           => "${nginx_log_directory}/gitlab_access.log",
+    format_log           => 'gitlab_access',
+    error_log            => "${nginx_log_directory}/gitlab_error.log",
+    raw_prepend          => [
         template('gitlabinstall/nginx/chunks/default-host.erb'),
         template('nginx/conf.d/gzip.conf.erb'),
         template('nginx/conf.d/proxy.conf.erb'),
     ],
 
-    locations                 => $locations_git +
+    locations            => $locations_git +
                                 $locations_health +
                                 $locations_default,
 
-    locations_defaults        => {
+    locations_defaults   => {
         proxy       => 'http://gitlab-workhorse',
         proxy_cache => 'off',
     },
-    error_pages               => {
+    error_pages          => {
         404 => '/404.html',
         500 => '/500.html',
         502 => '/502.html',
     },
-    use_default_location      => false,
+    use_default_location => false,
   }
 }

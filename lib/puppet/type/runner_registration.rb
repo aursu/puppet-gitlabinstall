@@ -20,11 +20,8 @@ Puppet::Type.newtype(:runner_registration) do
     end
 
     def insync?(is)
-      if is.is_a? Array
-        return is.sort == @should.sort
-      else
-        return is == @should
-      end
+      return (is.sort == @should.sort) if is.is_a? Array
+      is == @should
     end
 
     def validate_value?(_value)

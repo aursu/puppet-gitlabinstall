@@ -88,4 +88,20 @@ class gitlabinstall::params {
     $database_username = 'gitlab'
     $database_name     = 'gitlabhq_production'
     $database_port     = 5432
+
+    $ssl_settings = {
+      'ssl'                         => true,
+      'http2'                       => true,
+      'ssl_session_timeout'         => '1d',
+      'ssl_cache'                   => 'shared:SSL:50m',
+      'ssl_session_tickets'         => false,
+      'ssl_protocols'               => 'TLSv1.2 TLSv1.3',
+      'ssl_ciphers'                 => 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384', # lint:ignore:140chars
+      'ssl_prefer_server_ciphers'   => false,
+      'ssl_stapling'                => true,
+      'ssl_stapling_verify'         => true,
+      'ssl_add_header'              => {
+        'Strict-Transport-Security' => 'max-age=63072000',
+      }
+    }
 }
