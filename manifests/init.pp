@@ -66,7 +66,7 @@
 #   IP address or domain name of your LDAP server.
 #
 class gitlabinstall (
-  String  $gitlab_package_ensure       = '13.0.10-ce.0.el7',
+  String  $gitlab_package_ensure       = $gitlabinstall::params::gitlab_version,
   Stdlib::HTTPUrl
           $external_url                = 'http://localhost',
   Variant[Stdlib::Fqdn, Stdlib::IP::Address]
@@ -109,7 +109,7 @@ class gitlabinstall (
           $smtp_domain                 = 'smtp.gmail.com',
   Optional[String]
           $gitlab_email_from           = undef,
-)
+) inherits gitlabinstall::params
 {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation
   # manual for external_url description)
