@@ -6,8 +6,8 @@
 #   include gitlabinstall::params
 class gitlabinstall::params {
   $gitlab_version = $facts['os']['release']['major'] ? {
-    '8'     => '14.0.4-ce.0.el8',
-    default => '14.0.4-ce.0.el7',
+    '8'     => '14.0.5-ce.0.el8',
+    default => '14.0.5-ce.0.el7',
   }
 
   # use directory defined by http://nginx.org/packages/
