@@ -6,7 +6,7 @@
 #   include gitlabinstall::postgres
 #
 # @param database_upgrade
-#   Avoid Postgres resoures management when PostgreSQL is updating
+#   Avoid Postgres resources management when PostgreSQL is updating
 #
 class gitlabinstall::postgres (
   String[8]
@@ -15,7 +15,7 @@ class gitlabinstall::postgres (
   String  $database_username   = $gitlabinstall::params::database_username,
   String  $database_name       = $gitlabinstall::params::database_name,
   Boolean $system_tools_setup  = $gitlabinstall::pg_tools_setup,
-  Boolean $database_upgrade    = false,
+  Boolean $database_upgrade    = $gitlabinstall::database_upgrade,
 ) inherits gitlabinstall::params
 {
   if $manage_service {

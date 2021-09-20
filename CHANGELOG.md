@@ -254,3 +254,14 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.3
+
+**Features**
+
+* Upgraded default GitLab version to latest one [14.2.4]
+* Added database_upgrade flag
+
+**Bugfixes**
+
+**Known Issues**

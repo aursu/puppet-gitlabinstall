@@ -65,6 +65,9 @@
 # @param ldap_host
 #   IP address or domain name of your LDAP server.
 #
+# @param database_upgrade
+#   Avoid Postgres resources management when PostgreSQL is updating
+#
 class gitlabinstall (
   String  $gitlab_package_ensure       = $gitlabinstall::params::gitlab_version,
   Stdlib::HTTPUrl
@@ -109,6 +112,7 @@ class gitlabinstall (
           $smtp_domain                 = 'smtp.gmail.com',
   Optional[String]
           $gitlab_email_from           = undef,
+  Boolean $database_upgrade            = false,
 ) inherits gitlabinstall::params
 {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation

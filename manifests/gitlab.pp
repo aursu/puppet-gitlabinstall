@@ -38,7 +38,7 @@
 #   See https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html
 #
 # @param database_upgrade
-#   Avoid Postgres resoures management when PostgreSQL is updating
+#   Avoid Postgres resources management when PostgreSQL is updating
 #
 class gitlabinstall::gitlab (
   String[8] $database_password           = $gitlabinstall::database_password,
@@ -96,7 +96,7 @@ class gitlabinstall::gitlab (
 
   # SMTP settings
   Boolean   $smtp_enabled                 = $gitlabinstall::smtp_enabled,
-  Boolean   $database_upgrade             = false,
+  Boolean   $database_upgrade             = $gitlabinstall::database_upgrade,
 )  inherits gitlabinstall::params
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
