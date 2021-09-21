@@ -5,6 +5,7 @@
 # @example
 #   include gitlabinstall::params
 class gitlabinstall::params {
+  # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
   $gitlab_version = $facts['os']['release']['major'] ? {
     '8'     => '14.2.4-ce.0.el8',
     default => '14.2.4-ce.0.el7',
