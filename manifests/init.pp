@@ -113,6 +113,12 @@ class gitlabinstall (
   Optional[String]
           $gitlab_email_from           = undef,
   Boolean $database_upgrade            = false,
+  Boolean $backup_cron_enable          = false,
+  Integer $backup_cron_hour            = 3,
+  Integer $backup_cron_minute          = 0,
+  Array[String]
+          $backup_cron_skips           = ['builds', 'artifacts'],
+
 ) inherits gitlabinstall::params
 {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation

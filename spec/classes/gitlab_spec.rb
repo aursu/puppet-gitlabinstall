@@ -167,6 +167,23 @@ describe 'gitlabinstall::gitlab' do
 
         it { is_expected.to compile }
       end
+
+      context 'with backup through cron' do
+        let(:params) do
+          super().merge(
+            backup_cron_enable: true,
+          )
+        end
+
+        it { is_expected.to compile }
+
+        it {
+          is_expected.to contain_cron('gitlab backup')
+            .with_command('/opt/gitlab/bin/gitlab-rake gitlab:backup:create CRON=1 SKIP=builds,artifacts 2>&1')
+            .with_hour(3)
+            .with_minute(0)
+        }
+      end
     end
   end
 end

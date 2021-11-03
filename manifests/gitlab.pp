@@ -97,6 +97,14 @@ class gitlabinstall::gitlab (
   # SMTP settings
   Boolean   $smtp_enabled                 = $gitlabinstall::smtp_enabled,
   Boolean   $database_upgrade             = $gitlabinstall::database_upgrade,
+
+  # Backup via cron
+  Boolean   $backup_cron_enable           = $gitlabinstall::backup_cron_enable,
+  Integer   $backup_cron_hour             = $gitlabinstall::backup_cron_hour,
+  Integer   $backup_cron_minute           = $gitlabinstall::backup_cron_minute,
+  # https://docs.gitlab.com/ee/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
+  Array[Enum['db', 'uploads', 'builds', 'artifacts', 'lfs', 'registry', 'pages', 'repositories']]
+            $backup_cron_skips            = $gitlabinstall::backup_cron_skips,
 )  inherits gitlabinstall::params
 {
   $upstream_edition = $gitlabinstall::params::upstream_edition
@@ -110,6 +118,7 @@ class gitlabinstall::gitlab (
   $certname         = $gitlabinstall::params::certname
   $hostcert         = $gitlabinstall::params::hostcert
   $listen_addr      = $gitlabinstall::params::gitlab_workhorse_socket
+  $rake_exec        = $gitlabinstall::params::gitlab_rake_exec
 
   $external_url = $gitlabinstall::external_url
   $server_name  = $gitlabinstall::server_name
@@ -334,6 +343,12 @@ class gitlabinstall::gitlab (
                                     $gitlab_workhorse_socket,
     prometheus_monitoring_enable => $prometheus_monitoring_enable,
     sidekiq                      => $sidekiq,
+
+    backup_cron_enable           => $backup_cron_enable,
+    backup_cron_hour             => $backup_cron_hour,
+    backup_cron_minute           => $backup_cron_minute,
+    backup_cron_skips            => $backup_cron_skips,
+    rake_exec                    => $rake_exec,
   }
 
   $repo_name = "gitlab_official_${upstream_edition}"
@@ -402,7 +417,6 @@ class gitlabinstall::gitlab (
   }
 
   # TODO: backup (https://docs.gitlab.com/ee/raketasks/backup_restore.html)
-  # 0 3 * * * /opt/gitlab/bin/gitlab-rake gitlab:backup:create CRON=1
   #
   # At the very minimum, you must backup (For Omnibus):
   # /etc/gitlab/gitlab-secrets.json
@@ -421,6 +435,6 @@ class gitlabinstall::gitlab (
   # is /var/opt/gitlab/backups. It needs to be owned by the git user.
   # https://docs.gitlab.com/ee/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
 
+  # TODO: backup cleanup
   # 0 */4 * * * /usr/bin/find /var/opt/gitlab/backups -mmin +7200 -delete
-  # 0 3 * * * /opt/gitlab/bin/gitlab-rake gitlab:backup:create CRON=1
 }

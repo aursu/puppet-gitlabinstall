@@ -265,3 +265,14 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.4
+
+**Features**
+
+* Added backup functionality for GitLab via cron job
+* Upgraded default GitLab version to latest one [14.4.1]
+
+**Bugfixes**
+
+**Known Issues**
