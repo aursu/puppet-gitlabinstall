@@ -6,7 +6,7 @@
 # @example
 #   include gitlabinstall::runner
 class gitlabinstall::runner (
-  String  $docker_image         = 'gitlab/gitlab-runner:v14.0.1',
+  String  $docker_image         = 'gitlab/gitlab-runner:v14.4.0',
   Boolean $register_runner      = true,
   Optional[String]
           $runner_name          = undef,
