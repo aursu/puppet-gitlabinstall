@@ -276,3 +276,15 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.5
+
+**Features**
+
+* Added ability to setup custom artifact path
+* Upgraded default GitLab version to latest one [14.10.0]
+* PDK upgrade to version 2.3.0
+
+**Bugfixes**
+
+**Known Issues**

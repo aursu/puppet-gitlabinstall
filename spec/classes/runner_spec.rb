@@ -29,7 +29,7 @@ describe 'gitlabinstall::runner' do
       }
 
       it {
-        is_expected.to contain_dockerimage('gitlab/gitlab-runner:v14.0.1')
+        is_expected.to contain_dockerimage('gitlab/gitlab-runner:v14.4.0')
       }
 
       it {

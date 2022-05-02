@@ -40,6 +40,10 @@
 # @param database_upgrade
 #   Avoid Postgres resources management when PostgreSQL is updating
 #
+# @param artifacts_path
+#  The artifacts are stored by default in /var/opt/gitlab/gitlab-rails/shared/artifacts.
+#  Use this parameter to change the storage path
+#
 class gitlabinstall::gitlab (
   String[8] $database_password           = $gitlabinstall::database_password,
 
@@ -82,12 +86,17 @@ class gitlabinstall::gitlab (
             $mnt_data                    = undef,
   String    $mnt_data_fstype             = 'ext4',
 
+  Optional[Stdlib::Unixpath]
+            $mnt_artifacts               = undef,
+  String    $mnt_artifacts_fstype        = 'ext4',
   # Packages
   # https://docs.gitlab.com/ee/administration/packages/index.html
   Boolean   $packages_enabled            = true,
 
   Optional[Stdlib::Unixpath]
             $packages_storage_path       = $gitlabinstall::params::packages_storage_path,
+  Stdlib::Unixpath
+            $artifacts_path              = $gitlabinstall::params::artifacts_path,
   Optional[Integer[0,1]]
             $repo_sslverify              = undef,
   Array[Stdlib::IP::Address]
@@ -119,6 +128,7 @@ class gitlabinstall::gitlab (
   $hostcert         = $gitlabinstall::params::hostcert
   $listen_addr      = $gitlabinstall::params::gitlab_workhorse_socket
   $rake_exec        = $gitlabinstall::params::gitlab_rake_exec
+  $default_artifacts_path = $gitlabinstall::params::artifacts_path
 
   $external_url = $gitlabinstall::external_url
   $server_name  = $gitlabinstall::server_name
@@ -317,6 +327,15 @@ class gitlabinstall::gitlab (
     $gitlab_rails_smtp = {}
   }
 
+  if $artifacts_path == $default_artifacts_path {
+    $gitlab_rails_artifacts = {}
+  }
+  else {
+    $gitlab_rails_artifacts = {
+      'artifacts_path' => $artifacts_path,
+    }
+  }
+
   file { $log_dir:
     ensure => directory,
   }
@@ -333,7 +352,8 @@ class gitlabinstall::gitlab (
                                     $gitlab_rails_packages +
                                     $gitlab_rails_monitoring_whitelist +
                                     $gitlab_rails_ldap +
-                                    $gitlab_rails_smtp,
+                                    $gitlab_rails_smtp +
+                                    $gitlab_rails_artifacts,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,
     web_server                   => $web_server,
@@ -413,6 +433,23 @@ class gitlabinstall::gitlab (
       device => $mnt_data,
       fstype => $mnt_data_fstype,
       before => Class['gitlab'],
+    }
+  }
+
+  if $mnt_artifacts {
+    exec { "/usr/bin/mkdir -p ${artifacts_path}":
+      creates => $artifacts_path,
+      before  => Mount[$artifacts_path]
+    }
+    mount { $artifacts_path:
+      ensure => 'mounted',
+      device => $mnt_artifacts,
+      fstype => $mnt_artifacts_fstype,
+      before => Class['gitlab'],
+    }
+
+    if $mnt_data {
+      Mount['/var/opt/gitlab'] -> Mount[$artifacts_path]
     }
   }
 

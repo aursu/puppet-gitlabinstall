@@ -184,6 +184,22 @@ describe 'gitlabinstall::gitlab' do
             .with_minute(0)
         }
       end
+
+      context 'with artifacts mount enabled' do
+        let(:params) do
+          super().merge(
+            mnt_artifacts: '/dev/mapper/data-gitlab--artifacts',
+          )
+        end
+
+        it {
+          is_expected.to contain_mount('/var/opt/gitlab/gitlab-rails/shared/artifacts')
+            .with_ensure('mounted')
+            .with_device('/dev/mapper/data-gitlab--artifacts')
+            .with_fstype('ext4')
+            .that_comes_before('Class[gitlab]')
+        }
+      end
     end
   end
 end

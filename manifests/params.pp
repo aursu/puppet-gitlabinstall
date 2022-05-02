@@ -7,8 +7,8 @@
 class gitlabinstall::params {
   # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
   $gitlab_version = $facts['os']['release']['major'] ? {
-    '8'     => '14.4.1-ce.0.el8',
-    default => '14.4.1-ce.0.el7',
+    '8'     => '14.10.0-ce.0.el8',
+    default => '14.10.0-ce.0.el7',
   }
 
   # use directory defined by http://nginx.org/packages/
@@ -64,6 +64,8 @@ class gitlabinstall::params {
     # Registry TLS auth key
     $registry_cert_path = "${registry_dir}/gitlab-registry.crt"
     $registry_key_path = '/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key'
+
+    $artifacts_path = '/var/opt/gitlab/gitlab-rails/shared/artifacts'
 
     if $facts['puppet_sslpaths'] {
       $privatekeydir = $facts['puppet_sslpaths']['privatekeydir']['path']
