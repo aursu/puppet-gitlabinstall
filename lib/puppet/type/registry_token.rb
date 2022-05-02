@@ -26,13 +26,13 @@ Puppet::Type.newtype(:registry_token) do
   class TimeProperty < Puppet::Property
     validate do |value|
       # accept unix timestamp
-      return true if value.to_s =~ %r{^[0-9]{10}$}
+      return true if value.to_s.match?(%r{^[0-9]{10}$})
       # raise TypeError if not time data could be found
       Time.parse(value)
     end
 
     munge do |value|
-      return value.to_i if value.to_s =~ %r{^[0-9]{10}$}
+      return value.to_i if value.to_s.match?(%r{^[0-9]{10}$})
       Time.parse(value).to_i
     end
 
@@ -82,7 +82,7 @@ Puppet::Type.newtype(:registry_token) do
     end
 
     validate do |value|
-      return true if value.to_s =~ %r{^\d+$}
+      return true if value.to_s.match?(%r{^\d+$})
       raise ArgumentError, _('Threshold must be provided as a number.')
     end
   end
@@ -238,7 +238,7 @@ Puppet::Type.newtype(:registry_token) do
     newvalues(%r{^[a-z0-9.-]+$})
 
     munge do |value|
-      return value if value =~ %r{\.json$}
+      return value if value.match?(%r{\.json$})
       "#{value}.json"
     end
   end

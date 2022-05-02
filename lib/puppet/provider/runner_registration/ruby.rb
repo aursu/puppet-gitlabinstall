@@ -69,9 +69,9 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     return {} if content.empty?
 
     begin
-      return TOML::Parser.new(content).parsed
+      TOML::Parser.new(content).parsed
     rescue Parslet::ParseFailed
-      return {}
+      {}
     end
   end
 
@@ -101,7 +101,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     end
   rescue SocketError, Net::OpenTimeout
     Puppet.warning "URL #{uri} fetch error"
-    return nil
+    nil
   end
 
   # use HTTP GET request to the server

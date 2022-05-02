@@ -37,6 +37,7 @@ def fixture_path
 end
 
 RSpec.configure do |c|
+  c.mock_with :rspec
   c.default_facts = default_facts
   c.add_setting :fixture_path, default: fixture_path
   c.hiera_config = File.join(fixture_path, '/hiera/hiera.yaml')
@@ -48,6 +49,18 @@ RSpec.configure do |c|
   end
   c.filter_run_excluding(bolt: true) unless ENV['GEM_BOLT']
   c.after(:suite) do
+  end
+
+  # Filter backtrace noise
+  backtrace_exclusion_patterns = [
+    %r{spec_helper},
+    %r{gems},
+  ]
+
+  if c.respond_to?(:backtrace_exclusion_patterns)
+    c.backtrace_exclusion_patterns = backtrace_exclusion_patterns
+  elsif c.respond_to?(:backtrace_clean_patterns)
+    c.backtrace_clean_patterns = backtrace_exclusion_patterns
   end
 end
 

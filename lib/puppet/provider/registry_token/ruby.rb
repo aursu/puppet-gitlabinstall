@@ -97,17 +97,17 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     JWT.decode(token, secret, true, algorithm: 'RS256')
   rescue OpenSSL::PKey::RSAError => e
     Puppet.warning(_('Can not create RSA PKey object (%{message})') % { message: e.message })
-    return []
+    []
   rescue JWT::DecodeError
-    return []
+    []
   rescue SystemCallError # Errno::ENOENT
-    return []
+    []
   end
 
   def self.prefetch(resources)
     entities = instances
     # rubocop:disable Lint/AssignmentInCondition
-    resources.keys.each do |entity_name|
+    resources.each_key do |entity_name|
       if provider = entities.find { |entity| entity.name == entity_name }
         resources[entity_name].provider = provider
       end

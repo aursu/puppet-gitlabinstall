@@ -69,10 +69,10 @@ Puppet::Type.newtype(:runner_registration) do
     validate do |value|
       if value.is_a? Array
         value.each do |tag|
-          raise ArgumentError, _('Each tag must be an alphanumeric string') unless tag.to_s =~ %r{^[A-Za-z0-9-]+$}
+          raise ArgumentError, _('Each tag must be an alphanumeric string') unless tag.to_s.match?(%r{^[A-Za-z0-9-]+$})
         end
       else
-        raise ArgumentError, _('Each tag must be an alphanumeric string') unless value.to_s =~ %r{^[A-Za-z0-9-]+$}
+        raise ArgumentError, _('Each tag must be an alphanumeric string') unless value.to_s.match?(%r{^[A-Za-z0-9-]+$})
       end
     end
 
@@ -155,7 +155,7 @@ Puppet::Type.newtype(:runner_registration) do
     desc 'Append or overwrite environment variables for runner'
 
     def validate_value?(value)
-      return false, _("Environment variable #{value} must start with valid variable name") unless value.to_s =~ %r{^[A-Za-z][_A-Za-z0-9]*=}
+      return false, _("Environment variable #{value} must start with valid variable name") unless value.to_s.match?(%r{^[A-Za-z][_A-Za-z0-9]*=})
       true
     end
   end
@@ -168,8 +168,8 @@ Puppet::Type.newtype(:runner_registration) do
       if cont
         return false, _("Mount path inside container must be a full path (not #{cont})") unless Puppet::Util.absolute_path?(cont)
         return true if Puppet::Util.absolute_path?(host)
-        return true if host.to_s =~ %r{^[a-zA-Z0-9][a-zA-Z0-9_.-]*$}
-        return false, _("#{host} includes invalid characters for a local volume name or it is not a full path")
+        return true if host.to_s.match?(%r{^[a-zA-Z0-9][a-zA-Z0-9_.-]*$})
+        [false, _("#{host} includes invalid characters for a local volume name or it is not a full path")]
       else
         return false, _("Mount path inside container must be a full path (not #{value})") unless Puppet::Util.absolute_path?(value)
         true
