@@ -288,3 +288,15 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.6
+
+**Features**
+
+* Added ability to specify version for jwt gem
+  because latest versions (> 2.4.0 ) depend on Ruby >= 2.5
+  that is not the case for Puppet 5.5
+
+**Bugfixes**
+
+**Known Issues**

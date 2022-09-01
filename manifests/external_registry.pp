@@ -101,6 +101,8 @@ class gitlabinstall::external_registry (
           $token_expire_time             = undef,
   Optional[Integer]
           $token_expire_threshold        = undef,
+
+  String  $jwt_gem_version               = 'installed',
 ) inherits gitlabinstall::params
 {
   include dockerinstall
@@ -172,10 +174,14 @@ class gitlabinstall::external_registry (
   }
 
   package {
-    ['jwt', 'base32']:
+    default:
       ensure   => 'installed',
       provider => 'puppet_gem',
     ;
+    'jwt':
+      ensure => $jwt_gem_version,
+    ;
+    'base32': ;
   }
 
   registry_token { 'default':
