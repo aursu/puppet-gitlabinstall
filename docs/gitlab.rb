@@ -6,6 +6,7 @@ require 'uri'
 require 'net/http'
 require 'json'
 
+#
 class OptparseExample
   #
   # Return a structure describing the options.
@@ -32,7 +33,7 @@ class OptparseExample
         @options.token = token
       end
 
-      opts.on('-g',  '--group GROUP', 'GitLab group') do |group|
+      opts.on('-g', '--group GROUP', 'GitLab group') do |group|
         @options.group = group
       end
 
@@ -75,38 +76,32 @@ class OptparseExample
   end
 
   def process_env
-    if @options.url.nil? and ENV.include?('GITLAB_URL')
-      @options.url = ENV['GITLAB_URL']
-    end
-
-    if @options.token.nil? and ENV.include?('PRIVATE_TOKEN')
-      @options.token = ENV['PRIVATE_TOKEN']
-    end
+    @options.url = ENV['GITLAB_URL'] if @options.url.nil? && ENV.include?('GITLAB_URL')
+    @options.token = ENV['PRIVATE_TOKEN'] if @options.token.nil? && ENV.include?('PRIVATE_TOKEN')
   end
 
   def validate
     if @options.url.nil?
       puts @opt_parser.help
-      raise OptionParser::ParseError.new("GitLab URL is not provided")
+      raise OptionParser::ParseError, 'GitLab URL is not provided'
     end
 
     if @options.token.nil?
       puts @opt_parser.help
-      raise OptionParser::ParseError.new("Personal access token is not provided")
+      raise OptionParser::ParseError, 'Personal access token is not provided'
     end
 
     if @options.group.nil?
       puts @opt_parser.help
-      raise OptionParser::ParseError.new("GitLab group is mandatory parameter")
+      raise OptionParser::ParseError, 'GitLab group is mandatory parameter'
     end
 
     # we do not need Deploy Key if projects going to be deleted
     return if @options.delete
+    return unless @options.deploy_key.nil?
 
-    if @options.deploy_key.nil?
-      puts @opt_parser.help
-      raise OptionParser::ParseError.new("Deploy token name or id is mandatory parameter")
-    end
+    puts @opt_parser.help
+    raise OptionParser::ParseError, 'Deploy token name or id is mandatory parameter'
   end
 end # class OptparseExample
 
@@ -203,8 +198,8 @@ class GitLabAPIClient
     ret = {}
     jout = api_get(request_uri)
     jout.each do |p|
-        idx = p[key]
-        ret[idx] = p.reject { |k, _v| k == key || filter.include?(k.to_sym) }
+      idx = p[key]
+      ret[idx] = p.reject { |k, _v| k == key || filter.include?(k.to_sym) }
     end
     ret
   end
@@ -218,7 +213,7 @@ class GitLabAPIClient
     code, _header, body = url_post(url, data, { 'PRIVATE-TOKEN' => auth_token })
     body_hash = JSON.parse(body) if body
 
-    return code, body_hash
+    return code, body_hash # rubocop:disable Style/RedundantReturn
   end
 
   def api_delete(request_uri)
@@ -230,10 +225,12 @@ class GitLabAPIClient
     code, _header, body = url_delete(url, { 'PRIVATE-TOKEN' => auth_token })
     body_hash = JSON.parse(body) if body
 
-    return code, body_hash
+    return code, body_hash # rubocop:disable Style/RedundantReturn
   end
 end
 
+# GitLab API object
+#
 class GitLabObject
   # GitLab client
   attr_accessor :client, :object
@@ -245,9 +242,11 @@ class GitLabObject
   end
 end
 
+# GitLab Group API object
+#
 class GitLabGroup < GitLabObject
   def initialize(name, client = nil)
-    raise ArgumentError.new("GitLabGroup name must be non-empty string") if name.nil? || name.empty?
+    raise ArgumentError, 'GitLabGroup name must be non-empty string' if name.nil? || name.empty?
 
     @name = name
 
@@ -258,7 +257,7 @@ class GitLabGroup < GitLabObject
     return @object unless @object.nil? || @object.empty?
     return nil unless @client
 
-    id = URI::encode_www_form_component(@name)
+    id = URI.encode_www_form_component(@name)
     @object = @client.api_get("/groups/#{id}")
 
     @object
@@ -283,7 +282,7 @@ class GitLabGroup < GitLabObject
   def projects_group_path(url_encode = false)
     projects.map do |p|
       if url_encode
-        URI::encode_www_form_component("#{@name}/%s" % [p['path']])
+        URI.encode_www_form_component("#{@name}/%s" % [p['path']])
       else
         "#{@name}/%s" % [p['path']]
       end
@@ -291,9 +290,11 @@ class GitLabGroup < GitLabObject
   end
 end
 
+# GitLab Deploy Key API object
+#
 class GitLabDeployKey < GitLabObject
   def initialize(name, client = nil)
-    raise ArgumentError.new("GitLabDeployKey name or id must be non-empty string") if name.nil? || name.empty?
+    raise ArgumentError, 'GitLabDeployKey name or id must be non-empty string' if name.nil? || name.empty?
 
     @name = name
 
@@ -304,7 +305,7 @@ class GitLabDeployKey < GitLabObject
     return @object unless @object.nil? || @object.empty?
     return nil unless @client
 
-    keys = @client.api_get("/deploy_keys").filter { |k| k['id'] == @name || k['title'] == @name }
+    keys = @client.api_get('/deploy_keys').filter { |k| k['id'] == @name || k['title'] == @name }
     return nil if keys.nil? || keys.empty?
 
     # first key is our object
@@ -314,9 +315,11 @@ class GitLabDeployKey < GitLabObject
   end
 end
 
+# GitLab Project API object
+#
 class GitLabProject < GitLabObject
   def initialize(path, client = nil)
-    raise ArgumentError.new("GitLabProject path must be non-empty string") if path.nil? || path.empty?
+    raise ArgumentError, 'GitLabProject path must be non-empty string' if path.nil? || path.empty?
 
     @path = path
     super(client)
@@ -330,7 +333,7 @@ class GitLabProject < GitLabObject
     end
     return nil unless @client
 
-    id = URI::encode_www_form_component(@path)
+    id = URI.encode_www_form_component(@path)
     @object = @client.api_get("/projects/#{id}")
 
     @object
@@ -342,10 +345,10 @@ class GitLabProject < GitLabObject
 
     return nil unless @client
 
-    id = URI::encode_www_form_component(@path)
-    code, body_hash = @client.api_delete("/projects/#{id}")
+    id = URI.encode_www_form_component(@path)
+    code, _body = @client.api_delete("/projects/#{id}")
 
-    return (code.to_s == "202")
+    code.to_s == '202'
   end
 
   # list of deploy keys for project
@@ -390,10 +393,10 @@ class GitLabProject < GitLabObject
     return true if deploy_key_check(key)
 
     key_id = if key.is_a?(GitLabDeployKey)
-              key.get['id']
-            else
-              GitLabDeployKey.new(key, @client).get['id']
-            end
+               key.get['id']
+             else
+               GitLabDeployKey.new(key, @client).get['id']
+             end
 
     return nil if key_id.nil? || key_id.to_s.empty?
 
@@ -401,19 +404,19 @@ class GitLabProject < GitLabObject
     return nil if project.nil? || project.empty?
 
     id = project['id']
-    code, body_hash = @client.api_post("/projects/#{id}/deploy_keys/#{key_id}/enable")
+    code, _body = @client.api_post("/projects/#{id}/deploy_keys/#{key_id}/enable")
 
-    return (code.to_s == "201")
+    code.to_s == '201'
   end
 end
 
 # parse command line arguments and environment variables
-options, argv = OptparseExample.new.parse(ARGV)
+options, _argv = OptparseExample.new.parse(ARGV)
 
 # GitLab REST API client
 client = GitLabAPIClient.new(options.url, options.token)
 
-# GitLab group to process 
+# GitLab group to process
 group = GitLabGroup.new(options.group, client)
 
 # Print all projects' paths inside group
