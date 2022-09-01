@@ -300,3 +300,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.7
+
+**Features**
+
+* Added ability to setup different ID for LDAP server provider
+
+**Bugfixes**
+
+**Known Issues**

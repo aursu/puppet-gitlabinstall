@@ -81,7 +81,11 @@
 # @param email
 #   LDAP attribute for user email.
 #
+# @param provider_id
+#   LDAP server provider ID
+#
 class gitlabinstall::ldap (
+  String  $provider_id                   = 'main',
   String  $base                          = $gitlabinstall::ldap_base,
   String  $password                      = $gitlabinstall::ldap_password,
   Variant[Stdlib::Fqdn, Stdlib::IP::Address]
@@ -151,7 +155,7 @@ class gitlabinstall::ldap (
     'ldap_enabled'         => true,
     'prevent_ldap_sign_in' => $prevent_ldap_sign_in,
     'ldap_servers'         => {
-      'main' => {
+      $provider_id => {
         'active_directory'              => $active_directory,
         'allow_username_or_email_login' => $allow_username_or_email_login,
         'base'                          => $base,
