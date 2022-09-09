@@ -17,7 +17,8 @@ class OptparseExample
     @options = OpenStruct.new
     @options.url = nil
     @options.token = nil
-    @options.delete = false
+    @options.resource = nil
+    @options.action = 'list'
 
     @opt_parser = OptionParser.new do |opts|
       opts.banner = 'Usage: gitlab.rb [options]'
@@ -38,10 +39,12 @@ class OptparseExample
       end
 
       opts.on('-p', '--project [PROJECT]', 'GitLab project') do |project|
+        @options.resource = 'project'
         @options.project = project
       end
 
-      opts.on('-d', '--deploy-key [KEY]', 'Deploy key to enable for project') do |key|
+      opts.on('-d', '--deploy-key [KEY]', 'Deploy key to work with') do |key|
+        @options.resource = 'deploy_key'
         @options.deploy_key = key
       end
 
@@ -50,8 +53,24 @@ class OptparseExample
         @options.verbose = v
       end
 
-      opts.on('--[no-]delete', 'Delete project') do |d|
-        @options.delete = d
+      opts.on('--delete', 'Delete resource') do |d|
+        @options.action = 'delete'
+      end
+
+      opts.on('--purge', 'Delete resource(s) within group') do |p|
+        @options.action = 'purge'
+      end
+
+      opts.on('--create', 'Create resource(s)') do |p|
+        @options.action = 'create'
+      end
+
+      opts.on('--enable', 'Enable resource (e.g. Deploy key for project)') do |p|
+        @options.action = 'enable'
+      end
+
+      opts.on('--list', 'Display resource(s)') do |p|
+        @options.action = 'list'
       end
 
       opts.separator ''
@@ -91,17 +110,9 @@ class OptparseExample
       raise OptionParser::ParseError, 'Personal access token is not provided'
     end
 
-    if @options.group.nil?
-      puts @opt_parser.help
-      raise OptionParser::ParseError, 'GitLab group is mandatory parameter'
+    if @options.deploy_key.is_a?(String)
+      raise OptionParser::ParseError, 'Personal access token is not provided' unless @options.deploy_key
     end
-
-    # we do not need Deploy Key if projects going to be deleted
-    return if @options.delete
-    return unless @options.deploy_key.nil?
-
-    puts @opt_parser.help
-    raise OptionParser::ParseError, 'Deploy token name or id is mandatory parameter'
   end
 end # class OptparseExample
 
@@ -410,37 +421,80 @@ class GitLabProject < GitLabObject
   end
 end
 
+
+
 # parse command line arguments and environment variables
 options, _argv = OptparseExample.new.parse(ARGV)
 
 # GitLab REST API client
 client = GitLabAPIClient.new(options.url, options.token)
 
-# GitLab group to process
-group = GitLabGroup.new(options.group, client)
+# create GitLabGroup object if provided
+options_group = nil
+if options.group.is_a?(String) && options.group
+  options_group = GitLabGroup.new(options.group, client)
+end
 
-# Print all projects' paths inside group
-puts JSON.pretty_generate(group.projects_group_path)
+# create GitLabProject object if provided 
+options_project = nil
+if options.project.is_a?(String) && options.project
+  options_project = GitLabProject.new(options.project, client)
+end
 
-if options.delete
-  group.projects_group_path.each do |p|
-    project = GitLabProject.new(p, client)
-    puts p
-
-    puts project.delete
-  end
-else
-  # Deploy Key to enable for all projects inside provided group
-  deploy_key = GitLabDeployKey.new(options.deploy_key, client)
-
-  group.projects_group_path.each do |p|
-    project = GitLabProject.new(p, client)
-    puts p
-
-    if project.deploy_key_check(deploy_key)
-      puts JSON.pretty_generate(project.deploy_keys)
+case options.action
+when 'delete'
+  # delete project
+  if options.resource == 'project'
+    # if project name has been prvided - delete sinngle project
+    if options_project
+      # print delete operation status
+      puts options_project.delete
     else
-      puts project.deploy_key_enable(deploy_key)
+      puts "Project path/id was not provided"
+      puts "Use option --purge to delete all projects inside group #{options.group}" if options_group
+    end
+  end
+when 'purge'
+  # purge all projects
+  if options.resource == 'project'
+    # inside group
+    if options_group
+      options_group.projects_group_path.each do |p|
+        group_project = GitLabProject.new(p, client)
+
+        puts group_project.delete
+      end
+    else
+      puts "Group was not provided to purge"
+    end
+  end
+when 'create'
+
+when 'enable'
+  # enable deploy key if provided
+  if options.deploy_key.is_a?(String) && options.deploy_key
+    deploy_key = GitLabDeployKey.new(options.deploy_key, client)
+
+    # for project if specified
+    if options_project
+
+    # or for group if specified
+    elsif options_group
+      options_group.projects_group_path.each do |p|
+        group_project = GitLabProject.new(p, client)
+
+        if group_project.deploy_key_check(deploy_key)
+          puts JSON.pretty_generate(group_project.deploy_keys) if options.verbose
+        else
+          puts group_project.deploy_key_enable(deploy_key)
+        end
+      end
+    end
+  end
+else # list
+  if options.resource == 'deploy_key'
+    if options_project
+      puts JSON.pretty_generate(options_project.deploy_keys)
     end
   end
 end
