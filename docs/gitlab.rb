@@ -18,6 +18,7 @@ class OptparseExample
     @options.url = nil
     @options.token = nil
     @options.resource = nil
+    @options.deploy_key_data = nil
     @options.action = 'list'
 
     @opt_parser = OptionParser.new do |opts|
@@ -46,6 +47,10 @@ class OptparseExample
       opts.on('-d', '--deploy-key [KEY]', 'Deploy key to work with') do |key|
         @options.resource = 'deploy_key'
         @options.deploy_key = key
+      end
+
+      opts.on('--deploy-key-data KEYDATA', 'Deploy key dat to work with') do |key|
+        @options.deploy_key_data = key
       end
 
       # Boolean switch.
@@ -304,7 +309,7 @@ class GitLabGroup < GitLabObject
     if fields.empty?
       object_projects
     else
-      object_projects.map { |p| p.filter { |k, _v| fields.include?(k) || fields.include?(k.to_sym) } }
+      object_projects.map { |p| p.select { |k, _v| fields.include?(k) || fields.include?(k.to_sym) } }
     end
   end
 
@@ -326,19 +331,22 @@ end
 # GitLab Deploy Key API object
 #
 class GitLabDeployKey < GitLabObject
+  attr_accessor :name
+
   def initialize(name, client = nil)
-    raise ArgumentError, 'GitLabDeployKey name or id must be non-empty string' if name.nil? || name.empty?
+    raise ArgumentError, 'GitLabDeployKey name or id must be non-empty string' if name.nil? || name.to_s.empty?
 
     @name = name
 
     super(client)
   end
 
+  # get Deploy Key by id or title
   def get
     return @object unless @object.nil? || @object.empty?
     return nil unless @client
 
-    keys = deploy_keys.filter { |k| k['id'] == @name || k['title'] == @name }
+    keys = deploy_keys.select { |k| k['id'] == @name || k['title'] == @name }
     return nil if keys.nil? || keys.empty?
 
     # first key is our object
@@ -347,15 +355,39 @@ class GitLabDeployKey < GitLabObject
     @object
   end
 
+  # get deploy key by key data
+  #
+  def self.get_key(key_data)
+    return nil unless get_client
+
+    # key data must be a string
+    return nil if key_data.nil? || key_data.to_s.empty?
+
+    _type, key, _name = key_data.split(%r{\s+}, 3)
+
+    # something wrong in provided key data format
+    return false if key.nil? || key.to_s.empty?
+
+    keys = deploy_keys.select { |k| k['key'].include?(key) }
+    return nil if keys.nil? || keys.empty?
+
+    # return first key
+    keys[0]
+  end
+
   def self.deploy_keys
     self.get_client.api_get('/deploy_keys')
+  end
+
+  def deploy_keys
+    self.class.deploy_keys
   end
 end
 
 # GitLab Project API object
 #
 class GitLabProject < GitLabObject
-  attr_accessor :group
+  attr_accessor :name, :group
 
   def initialize(path, client = nil)
     raise ArgumentError, 'GitLabProject path must be non-empty string' if path.nil? || path.empty?
@@ -424,7 +456,7 @@ class GitLabProject < GitLabObject
     return @deploy_keys unless @deploy_keys.nil? || @deploy_keys.empty?
 
     project = get
-    return nil if project.nil? || project.empty?
+    return [] if project.nil? || project.empty?
 
     id = project['id']
     @deploy_keys = @client.api_get("/projects/#{id}/deploy_keys")
@@ -443,7 +475,55 @@ class GitLabProject < GitLabObject
 
     return false if id.nil? || id.to_s.empty?
 
-    keys = deploy_keys.filter { |k| k['id'] == id || k['title'] == id }
+    keys = deploy_keys.select { |k| k['id'] == id || k['title'] == id }
+
+    # false if keys are empty or anything wrong
+    return false if keys.nil? || keys.empty?
+
+    # return key
+    keys[0]
+  end
+
+  # enable deploy key for project
+  #
+  # @param key
+  #   Either GitLabDeployKey key object or deploy key name/id
+  #
+  def deploy_key_enable(key)
+    key_check = deploy_key_check(key)
+    return key_check if key_check
+
+    key_id = if key.is_a?(GitLabDeployKey)
+               key.get['id']
+             else
+               GitLabDeployKey.new(key, @client).get['id']
+             end
+
+    return false if key_id.nil? || key_id.to_s.empty?
+
+    project = get
+    return false if project.nil? || project.empty?
+
+    id = project['id']
+    code, body_hash = @client.api_post("/projects/#{id}/deploy_keys/#{key_id}/enable")
+
+    return body_hash if code.to_s == '201'
+    false
+  end
+
+  # check if deploy key with specified key data enabled for project
+  #
+  # @param key_data
+  #   SSH public key data in format '(ssh-rsa|ssh-ed25519|...) <key_data>[ <name>]'
+  #
+  def deploy_key_data_check(key_data)
+    return false if key_data.nil? || key_data.to_s.empty?
+
+    _type, key, _name = key_data.split(%r{\s+}, 3)
+
+    return false if key.nil? || key.to_s.empty?
+
+    keys = deploy_keys.select { |k| k['key'].include?(key) }
 
     # false if keys are empty or anything wrong
     return false if keys.nil? || keys.empty?
@@ -453,27 +533,33 @@ class GitLabProject < GitLabObject
 
   # enable deploy key for project
   #
-  # @param key
-  #   Either GitLabDeployKey key object or deploy key name/id
+  # @param key_title
+  #   SSH public key title in GitLab
   #
-  def deploy_key_enable(key)
-    return true if deploy_key_check(key)
-
-    key_id = if key.is_a?(GitLabDeployKey)
-               key.get['id']
-             else
-               GitLabDeployKey.new(key, @client).get['id']
-             end
-
-    return nil if key_id.nil? || key_id.to_s.empty?
+  # @param key_data
+  #   SSH public key data in format '(ssh-rsa|ssh-ed25519|...) <key_data>[ <name>]'
+  #
+  def deploy_key_data_enable(key_title, key_data)
+    return true if deploy_key_data_check(key_data)
+    
+    key_object = GitLabDeployKey.get_key(key_data)
+    if key_object
+      return deploy_key_enable(key_object['id'])
+    end
 
     project = get
     return nil if project.nil? || project.empty?
 
-    id = project['id']
-    code, _body = @client.api_post("/projects/#{id}/deploy_keys/#{key_id}/enable")
+    key_post_data = {
+      title: key_title,
+      key: key_data,
+    }
 
-    code.to_s == '201'
+    id = project['id']
+    code, body_hash = @client.api_post("/projects/#{id}/deploy_keys", key_post_data.to_json)
+
+    return body_hash if code.to_s == '201'
+    false
   end
 end
 
@@ -539,6 +625,20 @@ when 'create'
       puts JSON.pretty_generate(options_project.create)
     else
       puts "Group was not provided. Users are not supported"
+    end
+  elsif options.resource == 'deploy_key' && options_deploy_key && options.deploy_key_data
+    # create deploy key for the project
+    if options_project
+      puts JSON.pretty_generate(options_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data))
+    # create deploy key for all projects in group
+    elsif options_group
+      options_group.projects_group_path.each do |p|
+        group_project = GitLabProject.new(p, client)
+
+        puts JSON.pretty_generate(group_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data))
+      end
+    else
+      puts "Neither group nor project were provided. Can not create deploy key"
     end
   end
 when 'enable'
