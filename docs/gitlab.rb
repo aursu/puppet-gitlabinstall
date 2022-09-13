@@ -563,10 +563,8 @@ class GitLabProject < GitLabObject
   end
 end
 
-
-
 # parse command line arguments and environment variables
-options, _argv = OptparseExample.new.parse(ARGV)
+options, argv = OptparseExample.new.parse(ARGV)
 
 # GitLab REST API client
 client = GitLabAPIClient.new(options.url, options.token)
@@ -575,6 +573,69 @@ client = GitLabAPIClient.new(options.url, options.token)
 options_group = nil
 if options.group.is_a?(String) && options.group
   options_group = GitLabGroup.new(options.group, client)
+end
+
+# JSON file content:
+# {
+#   "group/project-1":
+#     [
+#       {
+#         "id": 1,
+#         "title": "key1",
+#         "key": "ssh-rsa <public key base64-encode data> [optional key1 name]",
+#       }
+#     ],
+#   "group/project-2":
+#     [
+#       {
+#         "id": 2,
+#         "title": "key2",
+#         "key": "ssh-rsa <public key base64-encode data> [optional key2 name]",
+#       },
+#       {
+#         "id": 1,
+#         "title": "key1",
+#         "key": "ssh-rsa <public key base64-encode data> [optional key1 name]",
+#       }
+#     ]
+# }
+
+# check for files to parse
+if argv && argv[0]
+  argv.each do |config|
+    puts "Read file: #{config}"
+    begin
+      # token raw content
+      config_data = File.read(config)
+
+      # token JSON data
+      group_content = JSON.parse(config_data)
+      group_content.each do |project_path, project_keys|
+        project = GitLabProject.new(project_path, client)
+
+        if project.group
+          puts JSON.pretty_generate(project.create)
+        elsif options_group
+          puts JSON.pretty_generate(project.create(options_group))
+        else
+          puts "Group is not specified in project path #{project_path}. Use --group option to define it"
+        end
+
+        project_keys.each do |key_object|
+          if key_object['key']
+            puts JSON.pretty_generate(project.deploy_key_data_enable(key_object['title'], key_object['key']))
+          end
+        end
+      end
+    rescue SystemCallError
+      puts "System error (can not open file #{config})"
+      next
+    rescue JSON::ParserError
+      puts "JSON error (can not parse file #{config})"
+      next
+    end
+  end
+  exit(0)
 end
 
 # create GitLabProject object if provided 
