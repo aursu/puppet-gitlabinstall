@@ -69,6 +69,10 @@ class OptparseExample
         @options.action = 'enable'
       end
 
+      opts.on('--show', 'Show resource details') do |p|
+        @options.action = 'show'
+      end
+
       opts.on('--list', 'Display resource(s)') do |p|
         @options.action = 'list'
       end
@@ -215,13 +219,16 @@ class GitLabAPIClient
     ret
   end
 
-  def api_post(request_uri, data = nil)
+  def api_post(request_uri, data = nil, headers = { 'Content-Type' => 'application/json' })
     url = api_url(request_uri)
     return nil unless url
 
     body_hash = nil
 
-    code, _header, body = url_post(url, data, { 'PRIVATE-TOKEN' => auth_token })
+    req_headers = { 'PRIVATE-TOKEN' => auth_token }
+    req_headers.merge!(headers) if headers.is_a?(Hash)
+
+    code, _header, body = url_post(url, data, req_headers)
     body_hash = JSON.parse(body) if body
 
     return code, body_hash # rubocop:disable Style/RedundantReturn
@@ -246,10 +253,21 @@ class GitLabObject
   # GitLab client
   attr_accessor :client, :object
 
+  @@client
+
+  def self.set_client(client = nil)
+    @@client = client if client && client.is_a?(GitLabAPIClient)
+  end
+
   def initialize(client = nil)
-    @client = client if client && client.is_a?(GitLabAPIClient)
+    self.class.set_client(client)
+    @client = self.class.get_client
 
     @object = {}
+  end
+
+  def self.get_client
+    @@client
   end
 end
 
@@ -299,6 +317,10 @@ class GitLabGroup < GitLabObject
       end
     end
   end
+
+  def self.groups
+    self.get_client.api_get('/groups')
+  end
 end
 
 # GitLab Deploy Key API object
@@ -316,7 +338,7 @@ class GitLabDeployKey < GitLabObject
     return @object unless @object.nil? || @object.empty?
     return nil unless @client
 
-    keys = @client.api_get('/deploy_keys').filter { |k| k['id'] == @name || k['title'] == @name }
+    keys = deploy_keys.filter { |k| k['id'] == @name || k['title'] == @name }
     return nil if keys.nil? || keys.empty?
 
     # first key is our object
@@ -324,11 +346,17 @@ class GitLabDeployKey < GitLabObject
 
     @object
   end
+
+  def self.deploy_keys
+    self.get_client.api_get('/deploy_keys')
+  end
 end
 
 # GitLab Project API object
 #
 class GitLabProject < GitLabObject
+  attr_accessor :group
+
   def initialize(path, client = nil)
     raise ArgumentError, 'GitLabProject path must be non-empty string' if path.nil? || path.empty?
 
@@ -336,6 +364,9 @@ class GitLabProject < GitLabObject
     super(client)
 
     @deploy_keys = []
+
+    @group, sep, @name = @path.rpartition('/')
+    @group = nil unless sep == '/'
   end
 
   def get(force_check = false)
@@ -360,6 +391,31 @@ class GitLabProject < GitLabObject
     code, _body = @client.api_delete("/projects/#{id}")
 
     code.to_s == '202'
+  end
+
+  def create(group = nil)
+    return true if get(true)
+
+    group = @group if @group
+
+    group_id = if group.is_a?(GitLabGroup)
+                 group.get['id']
+               elsif group
+                 GitLabGroup.new(group, @client).get['id']
+               else
+                 nil
+               end
+    
+    project_data = {
+      name: @name,
+      initialize_with_readme: true,
+      namespace_id: group_id,
+    }
+
+    code, body_hash = @client.api_post('/projects', project_data.to_json)
+
+    return body_hash if code.to_s == '201'
+    false
   end
 
   # list of deploy keys for project
@@ -441,6 +497,11 @@ if options.project.is_a?(String) && options.project
   options_project = GitLabProject.new(options.project, client)
 end
 
+options_deploy_key = nil
+if options.deploy_key.is_a?(String) && options.deploy_key
+  options_deploy_key = GitLabDeployKey.new(options.deploy_key, client)
+end
+
 case options.action
 when 'delete'
   # delete project
@@ -469,7 +530,17 @@ when 'purge'
     end
   end
 when 'create'
-
+  # goinng to create project
+  if options.resource == 'project' && options_project
+    # as part of the group
+    if options_group
+      puts JSON.pretty_generate(options_project.create(options_group))
+    elsif options_project.group
+      puts JSON.pretty_generate(options_project.create)
+    else
+      puts "Group was not provided. Users are not supported"
+    end
+  end
 when 'enable'
   # enable deploy key if provided
   if options.deploy_key.is_a?(String) && options.deploy_key
@@ -491,10 +562,24 @@ when 'enable'
       end
     end
   end
+when 'show'
+  if options.resource == 'deploy_key'
+  
+  elsif options.resource.nil? && options_group
+    puts JSON.pretty_generate(options_group.get)
+  end
 else # list
   if options.resource == 'deploy_key'
+    GitLabDeployKey.set_client(client)
     if options_project
       puts JSON.pretty_generate(options_project.deploy_keys)
+    else
+      puts JSON.pretty_generate(GitLabDeployKey.deploy_keys)
     end
+  # list groups
+  elsif options.resource.nil?
+    GitLabGroup.set_client(client)
+
+    puts JSON.pretty_generate(GitLabGroup.groups)
   end
 end
