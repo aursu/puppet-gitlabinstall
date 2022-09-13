@@ -19,6 +19,7 @@ class OptparseExample
     @options.token = nil
     @options.resource = nil
     @options.deploy_key_data = nil
+    @options.deploy_key_push = false
     @options.action = 'list'
 
     @opt_parser = OptionParser.new do |opts|
@@ -49,8 +50,12 @@ class OptparseExample
         @options.deploy_key = key
       end
 
-      opts.on('--deploy-key-data KEYDATA', 'Deploy key dat to work with') do |key|
+      opts.on('--deploy-key-data KEYDATA', 'Deploy key data to work with') do |key|
         @options.deploy_key_data = key
+      end
+
+      opts.on('--[no-]deploy-key-push', 'Enable deploy key push capability') do |p|
+        @options.deploy_key_push = p
       end
 
       # Boolean switch.
@@ -186,6 +191,15 @@ class GitLabAPIClient
     req_submit(uri, req)
   end
 
+  # use HTTP POST request to the server
+  def url_put(url, data = nil, header = { 'Content-Type' => 'application/json' })
+    uri = URI(url)
+    req = Net::HTTP::Put.new(uri, header)
+    req.body = data unless data.nil? || data.empty?
+
+    req_submit(uri, req)
+  end
+
   def api_url(request_uri)
     gitlab_uri = URI(@url)
     api_host   = gitlab_uri.host
@@ -246,6 +260,21 @@ class GitLabAPIClient
     body_hash = nil
 
     code, _header, body = url_delete(url, { 'PRIVATE-TOKEN' => auth_token })
+    body_hash = JSON.parse(body) if body
+
+    return code, body_hash # rubocop:disable Style/RedundantReturn
+  end
+
+  def api_put(request_uri, data = nil, headers = { 'Content-Type' => 'application/json' })
+    url = api_url(request_uri)
+    return nil unless url
+
+    body_hash = nil
+
+    req_headers = { 'PRIVATE-TOKEN' => auth_token }
+    req_headers.merge!(headers) if headers.is_a?(Hash)
+
+    code, _header, body = url_put(url, data, req_headers)
     body_hash = JSON.parse(body) if body
 
     return code, body_hash # rubocop:disable Style/RedundantReturn
@@ -539,12 +568,13 @@ class GitLabProject < GitLabObject
   # @param key_data
   #   SSH public key data in format '(ssh-rsa|ssh-ed25519|...) <key_data>[ <name>]'
   #
-  def deploy_key_data_enable(key_title, key_data)
+  def deploy_key_data_enable(key_title, key_data, can_push = false)
     return true if deploy_key_data_check(key_data)
     
     key_object = GitLabDeployKey.get_key(key_data)
     if key_object
-      return deploy_key_enable(key_object['id'])
+      deploy_key_enable(key_object['id'])
+      return deploy_key_push(key_object['id'], can_push)
     end
 
     project = get
@@ -553,12 +583,35 @@ class GitLabProject < GitLabObject
     key_post_data = {
       title: key_title,
       key: key_data,
+      can_push: can_push,
     }
 
     id = project['id']
     code, body_hash = @client.api_post("/projects/#{id}/deploy_keys", key_post_data.to_json)
 
     return body_hash if code.to_s == '201'
+    false
+  end
+
+  def deploy_key_push(key, can_push = false)
+    key_check = deploy_key_check(key)
+    return false unless key_check
+
+    key_id, key_can_push = ['id', 'can_push'].map { |p| key_check[p] }
+
+    return key_check if can_push == key_can_push
+
+    project = get
+    return false if project.nil? || project.empty?
+
+    key_put_data = {
+      can_push: can_push,
+    }
+
+    id = project['id']
+    code, body_hash = @client.api_put("/projects/#{id}/deploy_keys/#{key_id}", key_put_data.to_json)
+
+    return body_hash if code.to_s == '200'
     false
   end
 end
@@ -690,13 +743,13 @@ when 'create'
   elsif options.resource == 'deploy_key' && options_deploy_key && options.deploy_key_data
     # create deploy key for the project
     if options_project
-      puts JSON.pretty_generate(options_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data))
+      puts JSON.pretty_generate(options_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data, options.deploy_key_push))
     # create deploy key for all projects in group
     elsif options_group
       options_group.projects_group_path.each do |p|
         group_project = GitLabProject.new(p, client)
 
-        puts JSON.pretty_generate(group_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data))
+        puts JSON.pretty_generate(group_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data, options.deploy_key_push))
       end
     else
       puts "Neither group nor project were provided. Can not create deploy key"
@@ -720,6 +773,7 @@ when 'enable'
         else
           puts group_project.deploy_key_enable(deploy_key)
         end
+        puts JSON.pretty_generate(group_project.deploy_key_push(deploy_key, options.deploy_key_push)) if options.deploy_key_push
       end
     end
   end
