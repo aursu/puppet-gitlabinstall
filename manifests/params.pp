@@ -7,8 +7,8 @@
 class gitlabinstall::params {
   # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
   $gitlab_version = $facts['os']['release']['major'] ? {
-    '8'     => '14.10.0-ce.0.el8',
-    default => '14.10.0-ce.0.el7',
+    '8'     => '15.3.3-ce.0.el8',
+    default => '15.3.3-ce.0.el7',
   }
 
   # use directory defined by http://nginx.org/packages/
@@ -93,6 +93,8 @@ class gitlabinstall::params {
 
     $backup_path = '/var/opt/gitlab/backups'
     $gitlab_rake_exec = '/opt/gitlab/bin/gitlab-rake'
+
+    $git_data = '/var/opt/gitlab/git-data'
 
     $database_username = 'gitlab'
     $database_name     = 'gitlabhq_production'

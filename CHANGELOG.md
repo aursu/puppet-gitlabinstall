@@ -310,3 +310,14 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.8
+
+**Features**
+
+* Added Git data path into module parameters
+* Upgraded default GitLab version to latest one [15.3.3]
+
+**Bugfixes**
+
+**Known Issues**
