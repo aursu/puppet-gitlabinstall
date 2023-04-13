@@ -7,7 +7,7 @@
 define gitlabinstall::runner::service (
   String  $compose_service      = $name,
   String  $compose_project      = 'gitlab',
-  String  $docker_image         = 'gitlab/gitlab-runner:v14.0.1',
+  String  $docker_image         = 'gitlab/gitlab-runner:v15.10.1',
   Boolean $manage_image         = false,
   Optional[Stdlib::Host]
           $docker_host          = undef,
@@ -37,8 +37,7 @@ define gitlabinstall::runner::service (
   String  $runner_executor      = 'docker',
   Optional[String]
           $runner_dokcer_image  = undef,
-)
-{
+) {
   include dockerinstall::params
   include gitlabinstall::runner::base
 
@@ -74,9 +73,9 @@ define gitlabinstall::runner::service (
 
   # Docker host IP address
   if $docker_ipaddr {
-    $docker_extra_hosts = [ "${docker_host_name}:${docker_ipaddr}" ]
+    $docker_extra_hosts = ["${docker_host_name}:${docker_ipaddr}"]
   }
-  else  {
+  else {
     $docker_extra_hosts = undef
   }
 

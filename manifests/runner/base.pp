@@ -7,8 +7,7 @@
 class gitlabinstall::runner::base (
   Stdlib::Unixpath
           $service_dir = $gitlabinstall::runner::params::service_dir,
-) inherits gitlabinstall::runner::params
-{
+) inherits gitlabinstall::runner::params {
   file { $service_dir:
     ensure => directory,
   }

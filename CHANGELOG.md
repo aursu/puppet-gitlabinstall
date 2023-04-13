@@ -321,3 +321,14 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.9
+
+**Features**
+
+* Upgraded default GitLab version to latest one [15.10.2]
+* Upgraded default GitLab runner version to latest one [15.10.1]
+
+**Bugfixes**
+
+**Known Issues**
