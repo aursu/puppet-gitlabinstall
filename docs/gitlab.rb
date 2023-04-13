@@ -706,7 +706,7 @@ case options.action
 when 'delete'
   # delete project
   if options.resource == 'project'
-    # if project name has been prvided - delete sinngle project
+    # if project name has been prvided - delete single project
     if options_project
       # print delete operation status
       puts options_project.delete
