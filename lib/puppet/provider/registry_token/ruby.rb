@@ -129,10 +129,11 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
       token.expire_time = expire_time
-      token[:access] = resource_access || []
-      token[:jti]    = @resource[:id]
-      token[:iat]    = @resource[:issued_at].to_i
-      token[:nbf]    = @resource[:not_before].to_i
+      token[:access]    = resource_access || []
+      token[:jti]       = @resource[:id]
+      token[:iat]       = @resource[:issued_at].to_i
+      token[:nbf]       = @resource[:not_before].to_i
+      token[:auth_type] = 'gitlab_or_ldap'
     end
   end
 
