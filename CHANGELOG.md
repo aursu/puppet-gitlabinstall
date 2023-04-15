@@ -332,3 +332,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.9.10
+
+**Features**
+
+**Bugfixes**
+
+* Added auth_type => 'gitlab_or_ldap' into registry token data
+
+**Known Issues**
