@@ -29,17 +29,12 @@
 #   or not
 #
 class gitlabinstall::ssl (
-  Stdlib::Fqdn
-          $server_name,
+  Stdlib::Fqdn $server_name,
   Boolean $manage_cert_data = $gitlabinstall::manage_cert_data,
-  Optional[String]
-          $cert_identity    = $gitlabinstall::cert_identity,
-  Optional[String]
-          $ssl_cert         = undef,
-  Optional[String]
-          $ssl_key          = undef,
-)
-{
+  Optional[String] $cert_identity = $gitlabinstall::cert_identity,
+  Optional[String] $ssl_cert = undef,
+  Optional[String] $ssl_key = undef,
+) {
   include tlsinfo
 
   # if both SSL cert and key provided via parameters - them have more priority
