@@ -50,69 +50,69 @@ class gitlabinstall::params {
   $nginx_upstream_members = {
     'gitlab-workhorse-socket' => {
       server => "unix:${gitlab_workhorse_socket}",
-    }
+    },
   }
 
-    # hardcode GitLab CE Omnibus installation
-    $upstream_edition = 'ce'
-    $service_name = 'gitlab-runsvdir'
+  # hardcode GitLab CE Omnibus installation
+  $upstream_edition = 'ce'
+  $service_name = 'gitlab-runsvdir'
 
-    # https://docs.gitlab.com/ee/administration/packages/container_registry.html#container-registry-storage-path
-    $registry_path = '/var/opt/gitlab/gitlab-rails/shared/registry'
-    $registry_dir  = '/var/opt/gitlab/registry'
+  # https://docs.gitlab.com/ee/administration/packages/container_registry.html#container-registry-storage-path
+  $registry_path = '/var/opt/gitlab/gitlab-rails/shared/registry'
+  $registry_dir  = '/var/opt/gitlab/registry'
 
-    # Registry TLS auth key
-    $registry_cert_path = "${registry_dir}/gitlab-registry.crt"
-    $registry_key_path = '/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key'
+  # Registry TLS auth key
+  $registry_cert_path = "${registry_dir}/gitlab-registry.crt"
+  $registry_key_path = '/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key'
 
-    $artifacts_path = '/var/opt/gitlab/gitlab-rails/shared/artifacts'
+  $artifacts_path = '/var/opt/gitlab/gitlab-rails/shared/artifacts'
 
-    if $facts['puppet_sslpaths'] {
-      $privatekeydir = $facts['puppet_sslpaths']['privatekeydir']['path']
-      $certdir       = $facts['puppet_sslpaths']['certdir']['path']
-    }
-    else {
-      # fallback to predefined
-      $privatekeydir = '/etc/puppetlabs/puppet/ssl/private_keys'
-      $certdir       = '/etc/puppetlabs/puppet/ssl/certs'
-    }
+  if $facts['puppet_sslpaths'] {
+    $privatekeydir = $facts['puppet_sslpaths']['privatekeydir']['path']
+    $certdir       = $facts['puppet_sslpaths']['certdir']['path']
+  }
+  else {
+    # fallback to predefined
+    $privatekeydir = '/etc/puppetlabs/puppet/ssl/private_keys'
+    $certdir       = '/etc/puppetlabs/puppet/ssl/certs'
+  }
 
-    if $facts['clientcert'] {
-      $certname = $facts['clientcert']
-    }
-    else {
-      # fallback to fqdn
-      $certname = $facts['fqdn']
-    }
+  if $facts['clientcert'] {
+    $certname = $facts['clientcert']
+  }
+  else {
+    # fallback to fqdn
+    $certname = $facts['fqdn']
+  }
 
-    $hostprivkey = "${privatekeydir}/${certname}.pem"
-    $hostcert    = "${certdir}/${certname}.pem"
+  $hostprivkey = "${privatekeydir}/${certname}.pem"
+  $hostcert    = "${certdir}/${certname}.pem"
 
-    # https://docs.gitlab.com/ee/administration/packages/index.html#changing-the-local-storage-path
-    $packages_storage_path = '/var/opt/gitlab/gitlab-rails/shared/packages'
+  # https://docs.gitlab.com/ee/administration/packages/index.html#changing-the-local-storage-path
+  $packages_storage_path = '/var/opt/gitlab/gitlab-rails/shared/packages'
 
-    $backup_path = '/var/opt/gitlab/backups'
-    $gitlab_rake_exec = '/opt/gitlab/bin/gitlab-rake'
+  $backup_path = '/var/opt/gitlab/backups'
+  $gitlab_rake_exec = '/opt/gitlab/bin/gitlab-rake'
 
-    $git_data = '/var/opt/gitlab/git-data'
+  $git_data = '/var/opt/gitlab/git-data'
 
-    $database_username = 'gitlab'
-    $database_name     = 'gitlabhq_production'
-    $database_port     = 5432
+  $database_username = 'gitlab'
+  $database_name     = 'gitlabhq_production'
+  $database_port     = 5432
 
-    $ssl_settings = {
-      'ssl'                         => true,
-      'http2'                       => true,
-      'ssl_session_timeout'         => '1d',
-      'ssl_cache'                   => 'shared:SSL:50m',
-      'ssl_session_tickets'         => false,
-      'ssl_protocols'               => 'TLSv1.2 TLSv1.3',
-      'ssl_ciphers'                 => 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384', # lint:ignore:140chars
-      'ssl_prefer_server_ciphers'   => false,
-      'ssl_stapling'                => true,
-      'ssl_stapling_verify'         => true,
-      'ssl_add_header'              => {
-        'Strict-Transport-Security' => 'max-age=63072000',
-      }
-    }
+  $ssl_settings = {
+    'ssl'                         => true,
+    'http2'                       => true,
+    'ssl_session_timeout'         => '1d',
+    'ssl_cache'                   => 'shared:SSL:50m',
+    'ssl_session_tickets'         => false,
+    'ssl_protocols'               => 'TLSv1.2 TLSv1.3',
+    'ssl_ciphers'                 => 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384', # lint:ignore:140chars
+    'ssl_prefer_server_ciphers'   => false,
+    'ssl_stapling'                => true,
+    'ssl_stapling_verify'         => true,
+    'ssl_add_header'              => {
+      'Strict-Transport-Security' => 'max-age=63072000',
+    },
+  }
 }

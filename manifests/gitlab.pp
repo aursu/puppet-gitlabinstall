@@ -114,8 +114,7 @@ class gitlabinstall::gitlab (
   # https://docs.gitlab.com/ee/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
   Array[Enum['db', 'uploads', 'builds', 'artifacts', 'lfs', 'registry', 'pages', 'repositories']]
             $backup_cron_skips            = $gitlabinstall::backup_cron_skips,
-)  inherits gitlabinstall::params
-{
+) inherits gitlabinstall::params {
   $upstream_edition = $gitlabinstall::params::upstream_edition
   $service_name     = $gitlabinstall::params::service_name
   $user_id          = $gitlabinstall::params::user_id
@@ -287,7 +286,6 @@ class gitlabinstall::gitlab (
     $gitlab_rails_registry = {}
   }
 
-
   # Package Registry (Moved to GitLab Core in 13.3)
   # TODO: add storage management (directory path, mount)
   if $packages_enabled {
@@ -348,19 +346,18 @@ class gitlabinstall::gitlab (
     external_url                 => $external_url,
     postgresql                   => $postgresql,
     gitlab_rails                 => $gitlab_rails +
-                                    $gitlab_rails_registry +
-                                    $gitlab_rails_packages +
-                                    $gitlab_rails_monitoring_whitelist +
-                                    $gitlab_rails_ldap +
-                                    $gitlab_rails_smtp +
-                                    $gitlab_rails_artifacts,
+    $gitlab_rails_registry +
+    $gitlab_rails_packages +
+    $gitlab_rails_monitoring_whitelist +
+    $gitlab_rails_ldap +
+    $gitlab_rails_smtp +
+    $gitlab_rails_artifacts,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,
     web_server                   => $web_server,
     unicorn                      => $unicorn,
     puma                         => $puma,
-    gitlab_workhorse             => $gitlab_workhorse +
-                                    $gitlab_workhorse_socket,
+    gitlab_workhorse             => $gitlab_workhorse + $gitlab_workhorse_socket,
     prometheus_monitoring_enable => $prometheus_monitoring_enable,
     sidekiq                      => $sidekiq,
 
@@ -386,8 +383,8 @@ class gitlabinstall::gitlab (
   # small cleanup in case of preceding manual uninstallation
   # to avoid https://docs.gitlab.com/omnibus/common_installation_problems/#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run
   if $upstream_edition in ['ce', 'ee'] and $service_name == 'gitlab-runsvdir' {
-    [ '/usr/lib/systemd/system/gitlab-runsvdir.service',
-      '/etc/systemd/system/basic.target.wants/gitlab-runsvdir.service'].each |$unit| {
+    ['/usr/lib/systemd/system/gitlab-runsvdir.service',
+    '/etc/systemd/system/basic.target.wants/gitlab-runsvdir.service'].each |$unit| {
       exec { "rm -f ${unit}":
         refreshonly => true,
         onlyif      => "test -f ${unit}",
@@ -426,7 +423,7 @@ class gitlabinstall::gitlab (
   if $mnt_data {
     exec { '/usr/bin/mkdir -p /var/opt/gitlab':
       creates => '/var/opt/gitlab',
-      before  => Mount['/var/opt/gitlab']
+      before  => Mount['/var/opt/gitlab'],
     }
     mount { '/var/opt/gitlab':
       ensure => 'mounted',
@@ -439,7 +436,7 @@ class gitlabinstall::gitlab (
   if $mnt_artifacts {
     exec { "/usr/bin/mkdir -p ${artifacts_path}":
       creates => $artifacts_path,
-      before  => Mount[$artifacts_path]
+      before  => Mount[$artifacts_path],
     }
     mount { $artifacts_path:
       ensure => 'mounted',
