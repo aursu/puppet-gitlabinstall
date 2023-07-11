@@ -342,3 +342,13 @@ under module management
 * Added auth_type => 'gitlab_or_ldap' into registry token data
 
 **Known Issues**
+
+## Release 1.9.11
+
+**Features**
+
+* Upgraded default GitLab version to latest 15.x [15.11.11]
+
+**Bugfixes**
+
+**Known Issues**
