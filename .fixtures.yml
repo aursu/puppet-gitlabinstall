@@ -5,40 +5,43 @@ fixtures:
   forge_modules:
     concat:
       repo: puppetlabs/concat
-      ref: 6.4.0
-    gitlab:
-      repo: puppet/gitlab
-      ref: 8.0.0
-    mount_core:
-      repo: puppetlabs/mount_core
-      puppet_version: ">= 6.0.0"
-    postgresql:
-      repo: puppetlabs/postgresql
-      ref: 6.10.1
-    puppet:
-      repo: aursu/puppet
-      ref: 0.1.5
-    selinux:
-      repo: puppet/selinux
-      ref: 3.2.0
-    stdlib:
-      repo: puppetlabs/stdlib
-      ref: 6.6.0
-    tlsinfo:
-      repo: aursu/tlsinfo
-    yumrepo_core:
-      repo: puppetlabs/yumrepo_core
-      puppet_version: ">= 6.0.0"
+      ref: 9.0.0
     cron_core:
       repo: puppetlabs/cron_core
       puppet_version: ">= 6.0.0"
-  repositories:
     dockerinstall:
-      repo: https://github.com/aursu/puppet-dockerinstall.git
-      ref: tags/v0.9.5
+      repo: aursu/dockerinstall
+      ref: 0.14.1
+    gitlab:
+      repo: puppet/gitlab
+      ref: 8.1.0
     lsys:
-      repo: https://github.com/aursu/puppet-lsys.git
-      ref: tags/v0.18.0
+      repo: aursu/lsys
+      ref: 0.43.0
+    mount_core:
+      repo: puppetlabs/mount_core
+      puppet_version: ">= 6.0.0"
     nginx:
-      repo: https://github.com/aursu/puppet-nginx.git
-      ref: tags/v3.0.1-rc0.1
+      repo: aursu/nginx
+      ref: 4.4.2
+    postgresql:
+      repo: puppetlabs/postgresql
+      ref: 9.2.0
+    puppet:
+      repo: aursu/puppet
+      ref: 0.7.1
+    selinux:
+      repo: puppet/selinux
+      ref: 4.0.0
+    stdlib:
+      repo: puppetlabs/stdlib
+      ref: 9.3.0
+    systemd:
+      repo: puppet/systemd
+      ref: 6.0.0
+    tlsinfo:
+      repo: aursu/tlsinfo
+      ref: 0.3.7
+    yumrepo_core:
+      repo: puppetlabs/yumrepo_core
+      puppet_version: ">= 6.0.0"

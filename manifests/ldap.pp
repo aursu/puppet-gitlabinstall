@@ -89,33 +89,25 @@ class gitlabinstall::ldap (
   String  $base                          = $gitlabinstall::ldap_base,
   String  $password                      = $gitlabinstall::ldap_password,
   Variant[Stdlib::Fqdn, Stdlib::IP::Address]
-          $host                          = $gitlabinstall::ldap_host,
+  $host = $gitlabinstall::ldap_host,
   Integer $port                          = 636,
   Enum['userPrincipalName', 'sAMAccountName', 'uid']
-          $uid                           = 'uid',
+  $uid = 'uid',
   Enum['simple_tls', 'start_tls', 'plain']
-          $encryption                    = 'simple_tls',
+  $encryption = 'simple_tls',
   String  $label                         = 'LDAP',
   Boolean $prevent_ldap_sign_in          = false,
   Boolean $active_directory              = false,
   Boolean $allow_username_or_email_login = false,
   Boolean $block_auto_created_users      = true,
-  Optional[String]
-          $bind_dn                       = undef,
-  Optional[String]
-          $group_base                    = undef,
-  Optional[String]
-          $user_filter                   = undef,
-  Optional[String]
-          $full_name                     = undef,
-  Optional[String]
-          $first_name                    = undef,
-  Optional[String]
-          $last_name                     = undef,
-  Optional[String]
-          $email                         = undef,
-)
-{
+  Optional[String] $bind_dn = undef,
+  Optional[String] $group_base = undef,
+  Optional[String] $user_filter = undef,
+  Optional[String] $full_name = undef,
+  Optional[String] $first_name = undef,
+  Optional[String] $last_name = undef,
+  Optional[String] $email = undef,
+) {
   $main_group_base = $group_base ? {
     String => { 'group_base' => $group_base },
     default => {}
@@ -172,7 +164,7 @@ class gitlabinstall::ldap (
       $main_full_name +
       $main_first_name +
       $main_last_name +
-      $main_email
-    }
+      $main_email,
+    },
   }
 }

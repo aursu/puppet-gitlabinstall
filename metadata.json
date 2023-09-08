@@ -1,6 +1,6 @@
 {
   "name": "aursu-gitlabinstall",
-  "version": "1.9.12",
+  "version": "1.10.0",
   "author": "aursu",
   "summary": "Dedicated GitLab installation",
   "license": "Apache-2.0",
@@ -21,12 +21,12 @@
       "version_requirement": ">= 0.5.4 < 1.0.0"
     },
     {
-      "name": "puppet/nginx",
-      "version_requirement": ">= 2.0.0 < 4.0.0"
+      "name": "aursu/nginx",
+      "version_requirement": ">= 2.0.0 < 5.0.0"
     },
     {
       "name": "puppetlabs/postgresql",
-      "version_requirement": ">= 6.6.0 < 7.0.0"
+      "version_requirement": ">= 6.6.0 < 10.0.0"
     },
     {
       "name": "aursu/puppet",
@@ -34,11 +34,11 @@
     },
     {
       "name": "puppet/selinux",
-      "version_requirement": ">= 3.0.0 < 4.0.0"
+      "version_requirement": ">= 3.0.0 < 5.0.0"
     },
     {
       "name": "puppetlabs/stdlib",
-      "version_requirement": ">= 4.1.0 < 8.0.0"
+      "version_requirement": ">= 4.1.0 < 10.0.0"
     },
     {
       "name": "aursu/tlsinfo",
@@ -56,10 +56,10 @@
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 4.10.0 < 8.0.0"
+      "version_requirement": ">= 4.10.0 < 9.0.0"
     }
   ],
-  "pdk-version": "2.3.0",
-  "template-url": "pdk-default#2.3.0",
-  "template-ref": "tags/2.3.0-0-g8aaceff"
+  "pdk-version": "3.0.0",
+  "template-url": "pdk-default#3.0.0",
+  "template-ref": "tags/3.0.0-0-g056e50d"
 }

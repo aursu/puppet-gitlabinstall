@@ -103,8 +103,7 @@ class gitlabinstall::external_registry (
           $token_expire_threshold        = undef,
 
   String  $jwt_gem_version               = 'installed',
-) inherits gitlabinstall::params
-{
+) inherits gitlabinstall::params {
   include dockerinstall
 
   # Docker registry

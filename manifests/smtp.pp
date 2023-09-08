@@ -21,8 +21,7 @@ class gitlabinstall::smtp (
   Boolean $enable_starttls_auto     = true,
   Enum['none', 'peer']
           $openssl_verify_mode      = 'peer',
-)
-{
+) {
   $gitlab_rails = {
     'smtp_enable'               => true,
     'smtp_address'              => $address,

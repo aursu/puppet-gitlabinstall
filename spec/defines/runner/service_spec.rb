@@ -11,8 +11,7 @@ describe 'gitlabinstall::runner::service' do
   end
   let(:title) { 'namevar' }
   let(:params) do
-    {
-    }
+    {}
   end
 
   on_supported_os.each do |os, os_facts|

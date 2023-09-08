@@ -63,27 +63,27 @@ class OptparseExample
         @options.verbose = v
       end
 
-      opts.on('--delete', 'Delete resource') do |d|
+      opts.on('--delete', 'Delete resource') do
         @options.action = 'delete'
       end
 
-      opts.on('--purge', 'Delete resource(s) within group') do |p|
+      opts.on('--purge', 'Delete resource(s) within group') do
         @options.action = 'purge'
       end
 
-      opts.on('--create', 'Create resource(s)') do |p|
+      opts.on('--create', 'Create resource(s)') do
         @options.action = 'create'
       end
 
-      opts.on('--enable', 'Enable resource (e.g. Deploy key for project)') do |p|
+      opts.on('--enable', 'Enable resource (e.g. Deploy key for project)') do
         @options.action = 'enable'
       end
 
-      opts.on('--show', 'Show resource details') do |p|
+      opts.on('--show', 'Show resource details') do
         @options.action = 'show'
       end
 
-      opts.on('--list', 'Display resource(s)') do |p|
+      opts.on('--list', 'Display resource(s)') do
         @options.action = 'list'
       end
 
@@ -124,9 +124,8 @@ class OptparseExample
       raise OptionParser::ParseError, 'Personal access token is not provided'
     end
 
-    if @options.deploy_key.is_a?(String)
-      raise OptionParser::ParseError, 'Personal access token is not provided' unless @options.deploy_key
-    end
+    return unless @options.deploy_key.is_a?(String)
+    raise OptionParser::ParseError, 'Personal access token is not provided' unless @options.deploy_key
   end
 end # class OptparseExample
 
@@ -287,7 +286,7 @@ class GitLabObject
   # GitLab client
   attr_accessor :client, :object
 
-  @@client
+  @@client = nil
 
   def self.set_client(client = nil)
     @@client = client if client && client.is_a?(GitLabAPIClient)
@@ -353,7 +352,7 @@ class GitLabGroup < GitLabObject
   end
 
   def self.groups
-    self.get_client.api_get('/groups')
+    get_client.api_get('/groups')
   end
 end
 
@@ -405,7 +404,7 @@ class GitLabDeployKey < GitLabObject
   end
 
   def self.deploy_keys
-    self.get_client.api_get('/deploy_keys')
+    get_client.api_get('/deploy_keys')
   end
 
   def deploy_keys
@@ -466,7 +465,7 @@ class GitLabProject < GitLabObject
                else
                  nil
                end
-    
+
     project_data = {
       name: @name,
       initialize_with_readme: true,
@@ -570,7 +569,7 @@ class GitLabProject < GitLabObject
   #
   def deploy_key_data_enable(key_title, key_data, can_push = false)
     return true if deploy_key_data_check(key_data)
-    
+
     key_object = GitLabDeployKey.get_key(key_data)
     if key_object
       deploy_key_enable(key_object['id'])
@@ -691,7 +690,7 @@ if argv && argv[0]
   exit(0)
 end
 
-# create GitLabProject object if provided 
+# create GitLabProject object if provided
 options_project = nil
 if options.project.is_a?(String) && options.project
   options_project = GitLabProject.new(options.project, client)
@@ -711,7 +710,7 @@ when 'delete'
       # print delete operation status
       puts options_project.delete
     else
-      puts "Project path/id was not provided"
+      puts 'Project path/id was not provided'
       puts "Use option --purge to delete all projects inside group #{options.group}" if options_group
     end
   end
@@ -726,7 +725,7 @@ when 'purge'
         puts group_project.delete
       end
     else
-      puts "Group was not provided to purge"
+      puts 'Group was not provided to purge'
     end
   end
 when 'create'
@@ -738,7 +737,7 @@ when 'create'
     elsif options_project.group
       puts JSON.pretty_generate(options_project.create)
     else
-      puts "Group was not provided. Users are not supported"
+      puts 'Group was not provided. Users are not supported'
     end
   elsif options.resource == 'deploy_key' && options_deploy_key && options.deploy_key_data
     # create deploy key for the project
@@ -752,7 +751,7 @@ when 'create'
         puts JSON.pretty_generate(group_project.deploy_key_data_enable(options_deploy_key.name, options.deploy_key_data, options.deploy_key_push))
       end
     else
-      puts "Neither group nor project were provided. Can not create deploy key"
+      puts 'Neither group nor project were provided. Can not create deploy key'
     end
   end
 when 'enable'
@@ -779,7 +778,7 @@ when 'enable'
   end
 when 'show'
   if options.resource == 'deploy_key'
-  
+
   elsif options.resource.nil? && options_group
     puts JSON.pretty_generate(options_group.get)
   end

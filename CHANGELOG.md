@@ -352,3 +352,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.10.0
+
+**Features**
+
+* PDK upgrade to 3.0.0
+
+**Bugfixes**
+
+**Known Issues**
