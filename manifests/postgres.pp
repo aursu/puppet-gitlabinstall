@@ -9,15 +9,13 @@
 #   Avoid Postgres resources management when PostgreSQL is updating
 #
 class gitlabinstall::postgres (
-  String[8]
-          $database_password   = $gitlabinstall::database_password,
-  Boolean $manage_service      = $gitlabinstall::manage_postgresql_core,
-  String  $database_username   = $gitlabinstall::params::database_username,
-  String  $database_name       = $gitlabinstall::params::database_name,
-  Boolean $system_tools_setup  = $gitlabinstall::pg_tools_setup,
-  Boolean $database_upgrade    = $gitlabinstall::database_upgrade,
-) inherits gitlabinstall::params
-{
+  String[8] $database_password = $gitlabinstall::database_password,
+  Boolean $manage_service = $gitlabinstall::manage_postgresql_core,
+  String $database_username = $gitlabinstall::params::database_username,
+  String $database_name = $gitlabinstall::params::database_name,
+  Boolean $system_tools_setup = $gitlabinstall::pg_tools_setup,
+  Boolean $database_upgrade = $gitlabinstall::database_upgrade,
+) inherits gitlabinstall::params {
   if $manage_service {
     include lsys::postgres
   }
@@ -51,16 +49,22 @@ class gitlabinstall::postgres (
     $psql_path = "${bindir}/psql"
 
     unless $database_upgrade {
+      exec { 'mkdir -p /opt/gitlab/bin':
+        creates => '/opt/gitlab/bin',
+        path    => '/bin:/usr/bin',
+      }
+
       file {
         default:
-          ensure => link,
-        ;
+          ensure  => link,
+          require => Exec['mkdir -p /opt/gitlab/bin'],
+          ;
         '/opt/gitlab/bin/pg_dump':
           target => $pg_dump_path,
-        ;
+          ;
         '/opt/gitlab/bin/psql':
           target => $psql_path,
-        ;
+          ;
       }
     }
   }

@@ -45,77 +45,55 @@
 #  Use this parameter to change the storage path
 #
 class gitlabinstall::gitlab (
-  String[8] $database_password           = $gitlabinstall::database_password,
-
-  String    $gitlab_package_ensure       = $gitlabinstall::gitlab_package_ensure,
-
-  String    $log_dir                     = '/var/log/gitlab',
-
+  String[8] $database_password = $gitlabinstall::database_password,
+  String $gitlab_package_ensure = $gitlabinstall::gitlab_package_ensure,
+  String $log_dir = '/var/log/gitlab',
   # https://docs.gitlab.com/omnibus/settings/database.html#using-a-non-packaged-postgresql-database-management-server
-  Boolean   $external_postgresql_service = $gitlabinstall::external_postgresql_service,
-  Boolean   $manage_postgresql_core      = $gitlabinstall::manage_postgresql_core,
-  String    $database_host               = $gitlabinstall::database_host,
-  Variant[Integer, Pattern[/^[0-9]+$/]]
-            $database_port               = $gitlabinstall::params::database_port,
-  String    $database_username           = $gitlabinstall::params::database_username,
-  String    $database_name               = $gitlabinstall::params::database_name,
-
+  Boolean $external_postgresql_service = $gitlabinstall::external_postgresql_service,
+  Boolean $manage_postgresql_core = $gitlabinstall::manage_postgresql_core,
+  String $database_host = $gitlabinstall::database_host,
+  Variant[Integer, Pattern[/^[0-9]+$/]] $database_port = $gitlabinstall::params::database_port,
+  String $database_username = $gitlabinstall::params::database_username,
+  String $database_name = $gitlabinstall::params::database_name,
   # https://docs.gitlab.com/omnibus/settings/nginx.html#using-a-non-bundled-web-server
-  Boolean   $non_bundled_web_server      = $gitlabinstall::non_bundled_web_server,
-  Boolean   $manage_nginx_core           = true,
-  Boolean   $manage_cert_data            = true,
-  Optional[String]
-            $cert_identity               = undef,
-  Optional[String]
-            $ssl_cert                    = undef,
-  Optional[String]
-            $ssl_key                     = undef,
-  String    $gitlab_rails_host           = 'localhost',
-  Integer   $gitlab_rails_port           = 8080,
-  Boolean   $monitoring                  = false,
-
+  Boolean $non_bundled_web_server = $gitlabinstall::non_bundled_web_server,
+  Boolean $manage_nginx_core = true,
+  Boolean $manage_cert_data = true,
+  Optional[String] $cert_identity = undef,
+  Optional[String] $ssl_cert = undef,
+  Optional[String] $ssl_key = undef,
+  String $gitlab_rails_host = 'localhost',
+  Integer $gitlab_rails_port = 8080,
+  Boolean $monitoring = false,
   # External Registry (https://docs.gitlab.com/ce/administration/container_registry.html#disable-container-registry-but-use-gitlab-as-an-auth-endpoint)
   # See https://docs.gitlab.com/omnibus/architecture/registry/
-  Boolean   $external_registry_service   = $gitlabinstall::external_registry_service,
-
+  Boolean $external_registry_service = $gitlabinstall::external_registry_service,
   # Mount points for GitLab (/dev)
-  Optional[Stdlib::Unixpath]
-            $mnt_distro                  = undef,
-  String    $mnt_distro_fstype           = 'ext4',
-  Optional[Stdlib::Unixpath]
-            $mnt_data                    = undef,
-  String    $mnt_data_fstype             = 'ext4',
-
-  Optional[Stdlib::Unixpath]
-            $mnt_artifacts               = undef,
-  String    $mnt_artifacts_fstype        = 'ext4',
+  Optional[Stdlib::Unixpath] $mnt_distro = undef,
+  String $mnt_distro_fstype = 'ext4',
+  Optional[Stdlib::Unixpath] $mnt_data = undef,
+  String $mnt_data_fstype = 'ext4',
+  Optional[Stdlib::Unixpath] $mnt_artifacts = undef,
+  String $mnt_artifacts_fstype = 'ext4',
   # Packages
   # https://docs.gitlab.com/ee/administration/packages/index.html
-  Boolean   $packages_enabled            = true,
-
-  Optional[Stdlib::Unixpath]
-            $packages_storage_path       = $gitlabinstall::params::packages_storage_path,
-  Stdlib::Unixpath
-            $artifacts_path              = $gitlabinstall::params::artifacts_path,
-  Optional[Integer[0,1]]
-            $repo_sslverify              = undef,
-  Array[Stdlib::IP::Address]
-            $monitoring_whitelist        = $gitlabinstall::monitoring_whitelist,
-  Boolean   $ldap_enabled                = $gitlabinstall::ldap_enabled,
-
+  Boolean $packages_enabled = true,
+  Optional[Stdlib::Unixpath] $packages_storage_path = $gitlabinstall::params::packages_storage_path,
+  Stdlib::Unixpath $artifacts_path = $gitlabinstall::params::artifacts_path,
+  Optional[Integer[0,1]] $repo_sslverify = undef,
+  Array[Stdlib::IP::Address] $monitoring_whitelist = $gitlabinstall::monitoring_whitelist,
+  Boolean $ldap_enabled = $gitlabinstall::ldap_enabled,
   # SMTP settings
-  Boolean   $smtp_enabled                 = $gitlabinstall::smtp_enabled,
-  Boolean   $database_upgrade             = $gitlabinstall::database_upgrade,
-
+  Boolean $smtp_enabled = $gitlabinstall::smtp_enabled,
+  Boolean $database_upgrade = $gitlabinstall::database_upgrade,
   # Backup via cron
-  Boolean   $backup_cron_enable           = $gitlabinstall::backup_cron_enable,
-  Integer   $backup_cron_hour             = $gitlabinstall::backup_cron_hour,
-  Integer   $backup_cron_minute           = $gitlabinstall::backup_cron_minute,
+  Boolean $backup_cron_enable = $gitlabinstall::backup_cron_enable,
+  Integer $backup_cron_hour = $gitlabinstall::backup_cron_hour,
+  Integer $backup_cron_minute = $gitlabinstall::backup_cron_minute,
   # https://docs.gitlab.com/ee/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
   Array[Enum['db', 'uploads', 'builds', 'artifacts', 'lfs', 'registry', 'pages', 'repositories']]
-            $backup_cron_skips            = $gitlabinstall::backup_cron_skips,
-)  inherits gitlabinstall::params
-{
+  $backup_cron_skips = $gitlabinstall::backup_cron_skips,
+) inherits gitlabinstall::params {
   $upstream_edition = $gitlabinstall::params::upstream_edition
   $service_name     = $gitlabinstall::params::service_name
   $user_id          = $gitlabinstall::params::user_id
@@ -287,7 +265,6 @@ class gitlabinstall::gitlab (
     $gitlab_rails_registry = {}
   }
 
-
   # Package Registry (Moved to GitLab Core in 13.3)
   # TODO: add storage management (directory path, mount)
   if $packages_enabled {
@@ -348,19 +325,19 @@ class gitlabinstall::gitlab (
     external_url                 => $external_url,
     postgresql                   => $postgresql,
     gitlab_rails                 => $gitlab_rails +
-                                    $gitlab_rails_registry +
-                                    $gitlab_rails_packages +
-                                    $gitlab_rails_monitoring_whitelist +
-                                    $gitlab_rails_ldap +
-                                    $gitlab_rails_smtp +
-                                    $gitlab_rails_artifacts,
+    $gitlab_rails_registry +
+    $gitlab_rails_packages +
+    $gitlab_rails_monitoring_whitelist +
+    $gitlab_rails_ldap +
+    $gitlab_rails_smtp +
+    $gitlab_rails_artifacts,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,
     web_server                   => $web_server,
     unicorn                      => $unicorn,
     puma                         => $puma,
     gitlab_workhorse             => $gitlab_workhorse +
-                                    $gitlab_workhorse_socket,
+    $gitlab_workhorse_socket,
     prometheus_monitoring_enable => $prometheus_monitoring_enable,
     sidekiq                      => $sidekiq,
 
@@ -386,8 +363,8 @@ class gitlabinstall::gitlab (
   # small cleanup in case of preceding manual uninstallation
   # to avoid https://docs.gitlab.com/omnibus/common_installation_problems/#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run
   if $upstream_edition in ['ce', 'ee'] and $service_name == 'gitlab-runsvdir' {
-    [ '/usr/lib/systemd/system/gitlab-runsvdir.service',
-      '/etc/systemd/system/basic.target.wants/gitlab-runsvdir.service'].each |$unit| {
+    ['/usr/lib/systemd/system/gitlab-runsvdir.service',
+    '/etc/systemd/system/basic.target.wants/gitlab-runsvdir.service'].each |$unit| {
       exec { "rm -f ${unit}":
         refreshonly => true,
         onlyif      => "test -f ${unit}",
@@ -413,7 +390,7 @@ class gitlabinstall::gitlab (
   if $mnt_distro {
     exec { '/usr/bin/mkdir -p /opt/gitlab':
       creates => '/opt/gitlab',
-      before  => Mount['/opt/gitlab']
+      before  => Mount['/opt/gitlab'],
     }
     mount { '/opt/gitlab':
       ensure => 'mounted',
@@ -426,7 +403,7 @@ class gitlabinstall::gitlab (
   if $mnt_data {
     exec { '/usr/bin/mkdir -p /var/opt/gitlab':
       creates => '/var/opt/gitlab',
-      before  => Mount['/var/opt/gitlab']
+      before  => Mount['/var/opt/gitlab'],
     }
     mount { '/var/opt/gitlab':
       ensure => 'mounted',
@@ -439,7 +416,7 @@ class gitlabinstall::gitlab (
   if $mnt_artifacts {
     exec { "/usr/bin/mkdir -p ${artifacts_path}":
       creates => $artifacts_path,
-      before  => Mount[$artifacts_path]
+      before  => Mount[$artifacts_path],
     }
     mount { $artifacts_path:
       ensure => 'mounted',
