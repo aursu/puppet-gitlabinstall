@@ -343,11 +343,11 @@ under module management
 
 **Known Issues**
 
-## Release 1.9.11
+## Release 1.9.12
 
 **Features**
 
-* Upgraded default GitLab version to latest 15.x [15.11.11]
+* Upgraded default GitLab version to latest 15.x [15.11.13]
 
 **Bugfixes**
 

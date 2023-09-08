@@ -7,8 +7,8 @@
 class gitlabinstall::params {
   # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
   $gitlab_version = $facts['os']['release']['major'] ? {
-    '8'     => '15.11.11-ce.0.el8',
-    default => '15.11.11-ce.0.el7',
+    '8'     => '15.11.13-ce.0.el8',
+    default => '15.11.13-ce.0.el7',
   }
 
   # use directory defined by http://nginx.org/packages/
