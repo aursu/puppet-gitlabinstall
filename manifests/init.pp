@@ -119,8 +119,7 @@ class gitlabinstall (
   Array[String]
           $backup_cron_skips           = ['builds', 'artifacts'],
 
-) inherits gitlabinstall::params
-{
+) inherits gitlabinstall::params {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation
   # manual for external_url description)
   $urldata = split($external_url, '/')

@@ -26,32 +26,28 @@
 #   See https://docs.gitlab.com/ee/administration/monitoring/ip_whitelist.html
 #
 class gitlabinstall::nginx (
-  Boolean $manage_service        = $gitlabinstall::manage_nginx_core,
+  Boolean $manage_service = $gitlabinstall::manage_nginx_core,
   Boolean $global_proxy_settings = true,
   Boolean $manage_log_directory  = true,
-  String  $daemon_user           = $gitlabinstall::params::user,
-  Integer $daemon_user_id        = $gitlabinstall::params::user_id,
-  String  $daemon_group          = $gitlabinstall::params::group,
-  Integer $daemon_group_id       = $gitlabinstall::params::group_id,
-  String  $nginx_user_home       = $gitlabinstall::params::user_home,
+  String  $daemon_user = $gitlabinstall::params::user,
+  Integer $daemon_user_id = $gitlabinstall::params::user_id,
+  String  $daemon_group = $gitlabinstall::params::group,
+  Integer $daemon_group_id = $gitlabinstall::params::group_id,
+  String  $nginx_user_home = $gitlabinstall::params::user_home,
   String  $web_server_user_shell = $gitlabinstall::params::user_shell,
-  Boolean $ssl                   = false,
-  Optional[String]
-          $ssl_cert_path         = undef,
-  Optional[String]
-          $ssl_key_path          = undef,
+  Boolean $ssl = false,
+  Optional[String] $ssl_cert_path = undef,
+  Optional[String] $ssl_key_path = undef,
   Hash[
     Variant[Enum['ssl','http2'], Pattern[/^ssl_/]],
     Variant[Boolean, String,
       # ssl_add_header for the moment only Strict-Transport-Security
       Hash[Enum['Strict-Transport-Security'], String]
     ]
-  ]       $ssl_settings          = $gitlabinstall::params::ssl_settings,
+  ] $ssl_settings = $gitlabinstall::params::ssl_settings,
   Boolean $manage_document_root  = false,
-  Array[Stdlib::IP::Address]
-          $monitoring_whitelist  = $gitlabinstall::monitoring_whitelist,
-) inherits gitlabinstall::params
-{
+  Array[Stdlib::IP::Address] $monitoring_whitelist = $gitlabinstall::monitoring_whitelist,
+) inherits gitlabinstall::params {
   $external_url = $gitlabinstall::external_url
   $server_name  = $gitlabinstall::server_name
 
@@ -73,26 +69,26 @@ class gitlabinstall::nginx (
 
   # if SSL enabled - both certificate and key must be provided
   if $ssl and !($ssl_cert_path and $ssl_key_path) {
-      fail('SSL certificate path and/or SSL private key path not provided')
+    fail('SSL certificate path and/or SSL private key path not provided')
   }
 
   if $manage_service {
-      class { 'lsys::nginx':
-          daemon_user           => $daemon_user,
-          daemon_user_id        => $daemon_user_id,
-          daemon_group          => $daemon_group,
-          daemon_group_id       => $daemon_group_id,
-          nginx_user_home       => $nginx_user_home,
-          web_server_user_shell => $web_server_user_shell,
-          proxy_cache           => $nginx_proxy_cache,
-          proxy_cache_path      => $nginx_proxy_cache_path,
-          nginx_log_directory   => $nginx_log_directory,
-          nginx_lib_directory   => '/var/lib/nginx',
-          manage_document_root  => $manage_document_root,
-          global_ssl_redirect   => true,
-          manage_map_dir        => true,
-      }
-      File[$nginx_log_directory] -> Nginx::Resource::Server['gitlab-http']
+    class { 'lsys::nginx':
+      daemon_user           => $daemon_user,
+      daemon_user_id        => $daemon_user_id,
+      daemon_group          => $daemon_group,
+      daemon_group_id       => $daemon_group_id,
+      nginx_user_home       => $nginx_user_home,
+      web_server_user_shell => $web_server_user_shell,
+      proxy_cache           => $nginx_proxy_cache,
+      proxy_cache_path      => $nginx_proxy_cache_path,
+      nginx_log_directory   => $nginx_log_directory,
+      nginx_lib_directory   => '/var/lib/nginx',
+      manage_document_root  => $manage_document_root,
+      global_ssl_redirect   => true,
+      manage_map_dir        => true,
+    }
+    File[$nginx_log_directory] -> Nginx::Resource::Server['gitlab-http']
   }
   else {
     if $global_proxy_settings {
@@ -142,16 +138,16 @@ class gitlabinstall::nginx (
   }
 
   if $facts['selinux'] {
-      selinux::fcontext { $gitlab_workhorse_socket:
-          filetype => 's',
-          seltype  => 'httpd_var_run_t',
-      }
-      selinux::exec_restorecon { $gitlab_workhorse_socket:
-          refreshonly => false,
-          unless      => "/bin/ls -Z ${gitlab_workhorse_socket} | /bin/grep -q httpd_var_run_t",
-          onlyif      => "/bin/test -e ${gitlab_workhorse_socket}",
-          subscribe   => Selinux::Fcontext[$gitlab_workhorse_socket]
-      }
+    selinux::fcontext { $gitlab_workhorse_socket:
+      filetype => 's',
+      seltype  => 'httpd_var_run_t',
+    }
+    selinux::exec_restorecon { $gitlab_workhorse_socket:
+      refreshonly => false,
+      unless      => "/bin/ls -Z ${gitlab_workhorse_socket} | /bin/grep -q httpd_var_run_t",
+      onlyif      => "/bin/test -e ${gitlab_workhorse_socket}",
+      subscribe   => Selinux::Fcontext[$gitlab_workhorse_socket],
+    }
   }
 
   # Override global gzip settings
@@ -164,14 +160,14 @@ class gitlabinstall::nginx (
   $gzip_min_length = 250
   $gzip_proxied = ['no-cache', 'no-store', 'private', 'expired', 'auth']
   $gzip_types = [
-      'text/plain',
-      'text/css',
-      'text/xml',
-      'text/javascript',
-      'application/x-javascript',
-      'application/json',
-      'application/xml',
-      'application/xml+rss'
+    'text/plain',
+    'text/css',
+    'text/xml',
+    'text/javascript',
+    'application/x-javascript',
+    'application/json',
+    'application/xml',
+    'application/xml+rss',
   ]
 
   # https://github.com/gitlabhq/gitlabhq/issues/694
@@ -181,26 +177,26 @@ class gitlabinstall::nginx (
   $proxy_redirect = 'off'
   $proxy_http_version = '1.1'
   $proxy_set_header = [
-      'Host $http_host_with_default',
-      'X-Real-IP $remote_addr',
-      'X-Forwarded-For $proxy_add_x_forwarded_for',
-      'Upgrade $http_upgrade',
-      'Connection $connection_upgrade',
-      'X-Forwarded-Proto $scheme',
-      'X-Forwarded-Ssl on'
+    'Host $http_host_with_default',
+    'X-Real-IP $remote_addr',
+    'X-Forwarded-For $proxy_add_x_forwarded_for',
+    'Upgrade $http_upgrade',
+    'Connection $connection_upgrade',
+    'X-Forwarded-Proto $scheme',
+    'X-Forwarded-Ssl on',
   ]
 
   # if SSL enabled - use SSL only
   if $ssl {
-      $listen_port = 443
+    $listen_port = 443
   }
   else {
-      $listen_port = 80
+    $listen_port = 80
   }
 
   $locations_git = {
     '~ (.git/git-receive-pack$|.git/gitlab-lfs/objects|.git/info/lfs/objects/batch$)' => {
-        proxy_request_buffering => 'off',
+      proxy_request_buffering => 'off',
     },
   }
 
@@ -240,12 +236,12 @@ class gitlabinstall::nginx (
     $server_path                         => {
     },
     "${relative_url}/assets"             => {
-        proxy_cache => 'gitlab',
+      proxy_cache => 'gitlab',
     },
     '~ ^/(404|500|502)(-custom)?\.html$' => {
-        internal => true,
-        proxy    => undef,
-        www_root => '/opt/gitlab/embedded/service/gitlab-rails/public',
+      internal => true,
+      proxy    => undef,
+      www_root => '/opt/gitlab/embedded/service/gitlab-rails/public',
     },
   }
 
@@ -262,7 +258,7 @@ class gitlabinstall::nginx (
     listen_ip            => '*',
     listen_port          => $listen_port,
     server_name          => [
-        $server_name,
+      $server_name,
     ],
     # Increase this if you want to upload large attachments
     # Or if you want to accept large git objects over http
@@ -270,30 +266,30 @@ class gitlabinstall::nginx (
     # HSTS Config
     # https://www.nginx.com/blog/http-strict-transport-security-hsts-and-nginx/
     add_header           => {
-        'Strict-Transport-Security' => 'max-age=31536000',
+      'Strict-Transport-Security' => 'max-age=31536000',
     },
     # Individual nginx logs for this GitLab vhost
     access_log           => "${nginx_log_directory}/gitlab_access.log",
     format_log           => 'gitlab_access',
     error_log            => "${nginx_log_directory}/gitlab_error.log",
     raw_prepend          => [
-        template('gitlabinstall/nginx/chunks/default-host.erb'),
-        template('nginx/conf.d/gzip.conf.erb'),
-        template('nginx/conf.d/proxy.conf.erb'),
+      template('gitlabinstall/nginx/chunks/default-host.erb'),
+      template('nginx/conf.d/gzip.conf.erb'),
+      template('nginx/conf.d/proxy.conf.erb'),
     ],
 
     locations            => $locations_git +
-                                $locations_health +
-                                $locations_default,
+    $locations_health +
+    $locations_default,
 
     locations_defaults   => {
-        proxy       => 'http://gitlab-workhorse',
-        proxy_cache => 'off',
+      proxy       => 'http://gitlab-workhorse',
+      proxy_cache => 'off',
     },
     error_pages          => {
-        404 => '/404.html',
-        500 => '/500.html',
-        502 => '/502.html',
+      404 => '/404.html',
+      500 => '/500.html',
+      502 => '/502.html',
     },
     use_default_location => false,
   }
