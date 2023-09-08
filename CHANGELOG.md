@@ -353,12 +353,14 @@ under module management
 
 **Known Issues**
 
-## Release 1.10.0
+## Release 1.10.1
 
 **Features**
 
 * PDK upgrade to 3.0.0
 
 **Bugfixes**
+
+* Bugfix for load custom type 'runner_registration' by r10k
 
 **Known Issues**
