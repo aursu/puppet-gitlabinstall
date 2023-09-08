@@ -1,4 +1,5 @@
 require 'uri'
+require 'puppet/parameter/boolean'
 
 Puppet::Type.newtype(:runner_registration) do
   @doc = 'GitLab runner registration'
