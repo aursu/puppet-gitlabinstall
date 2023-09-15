@@ -1,5 +1,7 @@
 require 'json'
 require 'ipaddr'
+require 'uri'
+require 'net/http'
 
 Puppet::Type.type(:runner_registration).provide(:ruby) do
   @doc = 'Registry auth token provider'
@@ -85,6 +87,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
       open_timeout: 5,
     ) do |http|
       http.request(req) do |res|
+        Puppet.debug("res: {res.code: #{res.code}, res.to_hash: #{res.to_hash}, res.body: #{res.body}}")
         return res.code, res.to_hash, res.body if res.is_a?(Net::HTTPSuccess)
 
         if res.is_a?(Net::HTTPRedirection)
@@ -93,6 +96,9 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
 
           # follow redirection
           url = res['location']
+
+          Puppet.debug("Net::HTTPRedirection: {url: #{url}, header: #{header}}")
+
           return req_submit(URI(url), req, limit - 1)
         end
 
@@ -109,6 +115,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     uri = URI(url)
     req = Net::HTTP::Get.new(uri, header)
 
+    Puppet.debug("url_get: {url: #{url}, header: #{header}}")
+
     req_submit(uri, req)
   end
 
@@ -117,6 +125,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     uri = URI(url)
     req = Net::HTTP::Post.new(uri, header)
     req.body = data
+
+    Puppet.debug("url_post: {url: #{url}, req.body: #{data}}")
 
     req_submit(uri, req)
   end
@@ -127,6 +137,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     req = Net::HTTP::Delete.new(uri, header)
     req.body = data
 
+    Puppet.debug("url_delete: {url: #{url}, req.body: #{data}}")
+
     req_submit(uri, req)
   end
 
@@ -134,6 +146,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   def self.auth_insync?(url, token)
     auth_data  = URI.encode_www_form(token: token)
     verify_url = "#{url}/api/v4/runners/verify"
+
+    Puppet.debug("auth_insync?: {url: #{url}, token: #{token}}")
 
     code, _header, _body = url_post(verify_url, auth_data)
 
@@ -146,9 +160,13 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     reg_data = URI.encode_www_form(registration)
     reg_url = "#{url}/api/v4/runners"
 
+    Puppet.debug("register: {url: #{url}, registration: #{registration}}")
+
     # https://docs.gitlab.com/ee/api/runners.html#register-a-new-runner
     code, _header, body = url_post(reg_url, reg_data)
     auth_data           = JSON.parse(body) if body
+
+    Puppet.debug("register: {auth_data: #{auth_data}}")
 
     return auth_data if code.to_i == 201 && auth_data['id'] && auth_data['token']
     {}

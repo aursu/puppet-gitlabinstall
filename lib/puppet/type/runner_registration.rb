@@ -1,6 +1,8 @@
 require 'uri'
 require 'puppet/parameter/boolean'
 
+# https://gitlab.crylan.com/help/architecture/blueprints/runner_tokens/index.md#using-the-authentication-token-in-place-of-the-registration-token
+
 Puppet::Type.newtype(:runner_registration) do
   @doc = 'GitLab runner registration'
 

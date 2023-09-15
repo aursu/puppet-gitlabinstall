@@ -364,3 +364,13 @@ under module management
 * Bugfix for load custom type 'runner_registration' by r10k
 
 **Known Issues**
+
+## Release 1.11.0
+
+**Features**
+
+* Added debug logic into runner_registration provider
+
+**Bugfixes**
+
+**Known Issues**
