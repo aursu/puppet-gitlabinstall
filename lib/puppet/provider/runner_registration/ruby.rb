@@ -46,6 +46,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   def initialize(value = {})
     super(value)
     @property_flush = {}
+    @auth_info = {}
   end
 
   def self.validate_ip(ip)
@@ -97,7 +98,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
           # follow redirection
           url = res['location']
 
-          Puppet.debug("Net::HTTPRedirection: {url: #{url}, header: #{header}}")
+          Puppet.debug("location: {url: #{url}, header: #{header}}")
 
           return req_submit(URI(url), req, limit - 1)
         end
@@ -142,14 +143,19 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     req_submit(uri, req)
   end
 
-  # authentication token check
-  def self.auth_insync?(url, token)
+  # retreive authentication information based on token
+  def self.auth_info(url, token)
     auth_data  = URI.encode_www_form(token: token)
     verify_url = "#{url}/api/v4/runners/verify"
 
-    Puppet.debug("auth_insync?: {url: #{url}, token: #{token}}")
+    Puppet.debug("auth_info: {url: #{url}, token: #{token}}")
 
-    code, _header, _body = url_post(verify_url, auth_data)
+    url_post(verify_url, auth_data)
+  end
+
+  # authentication status check
+  def self.auth_insync?(url, token)
+    code, _header, _body = auth_info(url, token)
 
     code.to_i == 200
   end
@@ -218,12 +224,24 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     runner_data['docker']
   end
 
-  # authentication token check
+  # authentication check
   def auth_insync?
     url   = @resource.value(:gitlab_url)
     token = @resource.value(:authentication_token)
 
-    self.class.auth_insync?(url, token)
+    code, _header, body = self.class.auth_info(url, token)
+
+    # authentication could not be verified
+    return false unless code.to_i == 200
+
+    # store authentication token information
+    # into @auth_info dict (token, id, token_expires_at)
+    @auth_info = if body
+                   JSON.parse(body)
+                 else
+                   {}
+                 end
+    true
   end
 
   def exists?
@@ -262,7 +280,9 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
 
   def register_runner
     token = @resource.value(:registration_token)
-    url   = @resource.value(:gitlab_url)
+    return {} unless token
+
+    url = @resource.value(:gitlab_url)
 
     desc         = @resource.value(:description)
     tag_list     = @resource.value(:tag_list)
@@ -288,6 +308,7 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   def create
     name         = @resource[:name]
     # if no config file - register runner
+    reg_token    = @resource.value(:registration_token)
     auth_token   = @resource.value(:authentication_token)
     url          = @resource.value(:gitlab_url)
     executor     = @resource.value(:executor)
@@ -313,10 +334,12 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     # already registered - just update configuration file
     if auth_token && auth_insync?
       runner_data['token'] = auth_token
+      runner_data['id'] = @auth_info['id'] unless @auth_info.empty?
     # registration
-    else
+    elsif reg_token
       auth_data = register_runner
       runner_data['token'] = auth_data['token'] unless auth_data.empty?
+      runner_data['id'] = auth_data['id'] unless auth_data.empty?
     end
 
     generate_config

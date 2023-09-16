@@ -374,3 +374,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.12.0
+
+**Features**
+
+* Added ability to use authentication_token
+
+**Bugfixes**
+
+**Known Issues**

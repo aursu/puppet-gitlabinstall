@@ -137,8 +137,8 @@ Puppet::Type.newtype(:runner_registration) do
     newvalues(%r{^[_A-Za-z0-9-]+$})
 
     validate do |value|
-      raise ArgumentError, _('Registration token must be provided as a string.') unless value.is_a?(String)
-      raise ArgumentError, _('Registration token could not be empty') if value.empty?
+      raise ArgumentError, _('Authentication token must be provided as a string.') unless value.is_a?(String)
+      raise ArgumentError, _('Authentication token could not be empty') if value.empty?
     end
   end
 
@@ -210,9 +210,10 @@ Puppet::Type.newtype(:runner_registration) do
     config = self[:config]
     gitlab_url = self[:gitlab_url]
     registration_token = self[:registration_token]
+    authentication_token = self[:authentication_token]
 
-    raise Puppet::Error, 'Runner cconfiguration path must be set' unless config
+    raise Puppet::Error, 'Runner configuration path must be set' unless config
     raise Puppet::Error, 'GitLab URL must be provided' unless gitlab_url
-    raise Puppet::Error, 'Runner registration token must be provided' unless registration_token
+    raise Puppet::Error, 'Either runner registration token or authentication token must be provided' unless registration_token || authentication_token
   end
 end
