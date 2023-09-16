@@ -12,6 +12,8 @@ class gitlabinstall::runner (
           $runner_name          = undef,
   Optional[String]
           $registration_token   = undef,
+  Optional[String]
+          $authentication_token   = undef,
   Optional[Array[String]]
           $runner_tag_list      = undef,
   Optional[Stdlib::HTTPUrl]
@@ -24,15 +26,16 @@ class gitlabinstall::runner (
   $service_dir     = $gitlabinstall::runner::params::service_dir
 
   gitlabinstall::runner::service { $compose_service:
-    compose_project     => $compose_project,
-    docker_image        => $docker_image,
-    manage_image        => true,
-    runner_dir          => $service_dir,
-    register            => $register_runner,
-    runner_name         => $runner_name,
-    registration_token  => $registration_token,
-    runner_tag_list     => $runner_tag_list,
-    gitlab_url          => $gitlab_url,
-    runner_dokcer_image => $runner_dokcer_image,
+    compose_project      => $compose_project,
+    docker_image         => $docker_image,
+    manage_image         => true,
+    runner_dir           => $service_dir,
+    register             => $register_runner,
+    runner_name          => $runner_name,
+    registration_token   => $registration_token,
+    authentication_token => $authentication_token,
+    runner_tag_list      => $runner_tag_list,
+    gitlab_url           => $gitlab_url,
+    runner_dokcer_image  => $runner_dokcer_image,
   }
 }

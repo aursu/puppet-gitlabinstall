@@ -375,7 +375,7 @@ under module management
 
 **Known Issues**
 
-## Release 1.12.0
+## Release 1.12.1
 
 **Features**
 
