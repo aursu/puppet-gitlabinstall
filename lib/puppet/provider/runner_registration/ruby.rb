@@ -405,14 +405,16 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
   def flush
     return if @property_flush.empty?
 
-    url   = @property_flush[:gitlab_url] || @resource.value(:gitlab_url) || gitlab_url
-    token = @property_flush[:authentication_token] || @resource.value(:authentication_token) || authentication_token
+    reg_token = @resource.value(:registration_token)
+    url       = @property_flush[:gitlab_url] || @resource.value(:gitlab_url) || gitlab_url
+    auth_token     = @property_flush[:authentication_token] || @resource.value(:authentication_token) || authentication_token
 
+    # in case if GitLab URL has been changed
     if @property_flush[:gitlab_url]
-      if token && self.class.auth_insync?(url, token)
+      if auth_token && self.class.auth_insync?(url, auth_token)
         runner_data['url']   = url
-        runner_data['token'] = token
-      else
+        runner_data['token'] = auth_token
+      elsif reg_token
         auth_data = register_runner
         unless auth_data.empty?
           runner_data['url']   = url
@@ -420,9 +422,9 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
         end
       end
     elsif @property_flush[:authentication_token]
-      if self.class.auth_insync?(url, token)
+      if self.class.auth_insync?(url, auth_token)
         runner_data['url']   = url
-        runner_data['token'] = token
+        runner_data['token'] = auth_token
       end
     end
 
