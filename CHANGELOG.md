@@ -384,3 +384,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.13.0
+
+**Features**
+
+* Switched from lsys to lsys_postgrsql and lsys_nginx
+
+**Bugfixes**
+
+**Known Issues**

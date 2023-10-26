@@ -73,17 +73,17 @@ class gitlabinstall::nginx (
   }
 
   if $manage_service {
-    class { 'lsys::nginx':
+    class { 'lsys_nginx':
       daemon_user           => $daemon_user,
       daemon_user_id        => $daemon_user_id,
       daemon_group          => $daemon_group,
       daemon_group_id       => $daemon_group_id,
-      nginx_user_home       => $nginx_user_home,
+      user_home             => $nginx_user_home,
       web_server_user_shell => $web_server_user_shell,
       proxy_cache           => $nginx_proxy_cache,
       proxy_cache_path      => $nginx_proxy_cache_path,
-      nginx_log_directory   => $nginx_log_directory,
-      nginx_lib_directory   => '/var/lib/nginx',
+      log_directory         => $nginx_log_directory,
+      lib_directory         => '/var/lib/nginx',
       manage_document_root  => $manage_document_root,
       global_ssl_redirect   => true,
       manage_map_dir        => true,

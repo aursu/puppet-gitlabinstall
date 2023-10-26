@@ -17,7 +17,7 @@ class gitlabinstall::postgres (
   Boolean $database_upgrade = $gitlabinstall::database_upgrade,
 ) inherits gitlabinstall::params {
   if $manage_service {
-    include lsys::postgres
+    include lsys_postgresql
   }
 
   unless $database_upgrade {

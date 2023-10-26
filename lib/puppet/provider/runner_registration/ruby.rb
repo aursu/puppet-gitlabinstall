@@ -406,8 +406,8 @@ Puppet::Type.type(:runner_registration).provide(:ruby) do
     return if @property_flush.empty?
 
     reg_token = @resource.value(:registration_token)
-    url       = @property_flush[:gitlab_url] || @resource.value(:gitlab_url) || gitlab_url
-    auth_token     = @property_flush[:authentication_token] || @resource.value(:authentication_token) || authentication_token
+    url = @property_flush[:gitlab_url] || @resource.value(:gitlab_url) || gitlab_url
+    auth_token = @property_flush[:authentication_token] || @resource.value(:authentication_token) || authentication_token
 
     # in case if GitLab URL has been changed
     if @property_flush[:gitlab_url]

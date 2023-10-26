@@ -15,15 +15,18 @@ fixtures:
     gitlab:
       repo: puppet/gitlab
       ref: 8.1.0
-    lsys:
-      repo: aursu/lsys
-      ref: 0.43.0
     mount_core:
       repo: puppetlabs/mount_core
       puppet_version: ">= 6.0.0"
+    lsys_nginx:
+      repo: aursu/lsys_nginx
+      ref: 0.47.0
     nginx:
       repo: aursu/nginx
       ref: 4.4.2
+    lsys_postgresql:
+      repo: aursu/lsys_postgresql
+      ref: 0.47.0
     postgresql:
       repo: puppetlabs/postgresql
       ref: 9.2.0
@@ -45,3 +48,6 @@ fixtures:
     yumrepo_core:
       repo: puppetlabs/yumrepo_core
       puppet_version: ">= 6.0.0"
+    bsys:
+      repo: aursu/bsys
+      ref: 0.4.1
