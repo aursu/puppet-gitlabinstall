@@ -394,3 +394,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.14.0
+
+**Features**
+
+* Added backup feature for configuration and old backyp archives cleanup
+
+**Bugfixes**
+
+**Known Issues**

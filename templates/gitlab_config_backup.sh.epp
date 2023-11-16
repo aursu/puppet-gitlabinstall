@@ -1,0 +1,33 @@
+<% |
+  String $gitlab_version,
+  Stdlib::Unixpath $backup_path = '/var/opt/gitlab/backups',
+| -%>
+#!/bin/bash
+
+gitlab_version="<%= $gitlab_version %>"
+
+# First make sure your backup tar file is in the backup directory described
+# in the gitlab.rb configuration gitlab_rails['backup_path']. The default
+# is /var/opt/gitlab/backups. It needs to be owned by the git user.
+# https://docs.gitlab.com/ee/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
+backup_path="<%= $backup_path %>"
+
+timestamp=$(date +%s_%Y_%m_%d)
+config_backup_name="gitlab_config_${timestamp}.tar"
+
+# At the very minimum, you must backup (For Omnibus):
+# /etc/gitlab/gitlab-secrets.json
+# /etc/gitlab/gitlab.rb
+#
+# You may also want to back up any TLS keys and certificates:
+# /etc/ssh/ssh_host_*
+tar cf $backup_path/$config_backup_name /etc/gitlab/gitlab-secrets.json /etc/gitlab/gitlab.rb /etc/ssh/ssh_host_*
+
+# All configuration for Omnibus GitLab is stored in /etc/gitlab. To backup
+# your configuration, just run sudo gitlab-ctl backup-etc. It will create a
+# tar archive in /etc/gitlab/config_backup/. Directory and backup files
+# will be readable only to root.
+/opt/gitlab/bin/gitlab-ctl backup-etc
+
+chown git:git $backup_path/$config_backup_name
+chmod 0600 $backup_path/$config_backup_name

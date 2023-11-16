@@ -44,6 +44,18 @@
 #  The artifacts are stored by default in /var/opt/gitlab/gitlab-rails/shared/artifacts.
 #  Use this parameter to change the storage path
 #
+# @param backup_cleanup_enable
+#   Whether to cleanup old backup archives using crontab
+#
+# @param backup_cleanup_days
+#   How many days should backup archives be kept before deletion
+#
+# @param backup_cleanup_hour
+#   Hour value for the cleanup cron task
+#
+# @param backup_cleanup_minute
+#   Minute value for the cleanup cron task
+#
 class gitlabinstall::gitlab (
   String[8] $database_password = $gitlabinstall::database_password,
   String $gitlab_package_ensure = $gitlabinstall::gitlab_package_ensure,
@@ -93,6 +105,11 @@ class gitlabinstall::gitlab (
   # https://docs.gitlab.com/ee/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
   Array[Enum['db', 'uploads', 'builds', 'artifacts', 'lfs', 'registry', 'pages', 'repositories']]
   $backup_cron_skips = $gitlabinstall::backup_cron_skips,
+  Boolean $backup_cleanup_enable = true,
+  Integer $backup_cleanup_days = 5,
+  # Keep ability to chnage schedule
+  String $backup_cleanup_hour = '*/4',
+  String $backup_cleanup_minute = '0',
 ) inherits gitlabinstall::params {
   $upstream_edition = $gitlabinstall::params::upstream_edition
   $service_name     = $gitlabinstall::params::service_name
@@ -107,6 +124,7 @@ class gitlabinstall::gitlab (
   $listen_addr      = $gitlabinstall::params::gitlab_workhorse_socket
   $rake_exec        = $gitlabinstall::params::gitlab_rake_exec
   $default_artifacts_path = $gitlabinstall::params::artifacts_path
+  $backup_path      = $gitlabinstall::params::backup_path
 
   $external_url = $gitlabinstall::external_url
   $server_name  = $gitlabinstall::server_name
@@ -430,25 +448,33 @@ class gitlabinstall::gitlab (
     }
   }
 
-  # TODO: backup (https://docs.gitlab.com/ee/raketasks/backup_restore.html)
-  #
-  # At the very minimum, you must backup (For Omnibus):
-  # /etc/gitlab/gitlab-secrets.json
-  # /etc/gitlab/gitlab.rb
-  #
-  # You may also want to back up any TLS keys and certificates:
-  # /etc/ssh/ssh_host_*
-  #
-  # All configuration for Omnibus GitLab is stored in /etc/gitlab. To backup
-  # your configuration, just run sudo gitlab-ctl backup-etc. It will create a
-  # tar archive in /etc/gitlab/config_backup/. Directory and backup files
-  # will be readable only to root.
-  #
-  # First make sure your backup tar file is in the backup directory described
-  # in the gitlab.rb configuration gitlab_rails['backup_path']. The default
-  # is /var/opt/gitlab/backups. It needs to be owned by the git user.
-  # https://docs.gitlab.com/ee/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
+  if $backup_cron_enable {
+    # TODO: backup (https://docs.gitlab.com/ee/raketasks/backup_restore.html)
+    file { '/usr/libexec/gitlab': ensure => directory }
+    file { '/usr/libexec/gitlab/gitlab_config_backup.sh':
+      ensure  => file,
+      mode    => '0750',
+      content => epp('gitlabinstall/gitlab_config_backup.sh.epp', {
+          gitlab_version => $gitlab_version,
+          backup_path    => $backup_path,
+      }),
+    }
 
-  # TODO: backup cleanup
-  # 0 */4 * * * /usr/bin/find /var/opt/gitlab/backups -mmin +7200 -delete
+    cron { 'gitlab config backup':
+      command => '/usr/libexec/gitlab/gitlab_config_backup.sh 2>&1',
+      hour    => $backup_cron_hour,
+      minute  => $backup_cron_minute,
+    }
+
+    # TODO: backup cleanup
+    # 0 */4 * * * /usr/bin/find /var/opt/gitlab/backups -mmin +7200 -delete
+    if $backup_cleanup_enable {
+      $minutes = $backup_cleanup_days * 1440
+      cron { 'gitlab backups cleanup':
+        command => "/usr/bin/find ${backup_path} -mmin +${minutes} -delete",
+        hour    => $backup_cleanup_hour,
+        minute  => $backup_cleanup_minute,
+      }
+    }
+  }
 }

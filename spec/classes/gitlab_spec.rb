@@ -172,6 +172,7 @@ describe 'gitlabinstall::gitlab' do
         let(:params) do
           super().merge(
             backup_cron_enable: true,
+            gitlab_package_ensure: '16.5.2-ce.0.el8',
           )
         end
 
@@ -181,6 +182,32 @@ describe 'gitlabinstall::gitlab' do
           is_expected.to contain_cron('gitlab backup')
             .with_command('/opt/gitlab/bin/gitlab-rake gitlab:backup:create CRON=1 SKIP=builds,artifacts 2>&1')
             .with_hour(3)
+            .with_minute(0)
+        }
+
+        it {
+          is_expected.to contain_file('/usr/libexec/gitlab')
+            .with_ensure(:directory)
+        }
+
+        it {
+          is_expected.to contain_file('/usr/libexec/gitlab/gitlab_config_backup.sh')
+            .with_ensure(:file)
+            .with_content(%r{^gitlab_version="16\.5\.2"$})
+            .with_content(%r{^backup_path="/var/opt/gitlab/backups"$})
+        }
+
+        it {
+          is_expected.to contain_cron('gitlab config backup')
+            .with_command('/usr/libexec/gitlab/gitlab_config_backup.sh 2>&1')
+            .with_hour(3)
+            .with_minute(0)
+        }
+
+        it {
+          is_expected.to contain_cron('gitlab backups cleanup')
+            .with_command('/usr/bin/find /var/opt/gitlab/backups -mmin +7200 -delete')
+            .with_hour('*/4')
             .with_minute(0)
         }
       end
