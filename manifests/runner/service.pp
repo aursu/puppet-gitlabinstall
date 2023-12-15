@@ -5,38 +5,27 @@
 # @example
 #   gitlabinstall::runner::service { 'namevar': }
 define gitlabinstall::runner::service (
-  String  $compose_service      = $name,
-  String  $compose_project      = 'gitlab',
-  String  $docker_image         = 'gitlab/gitlab-runner:v15.10.1',
-  Boolean $manage_image         = false,
-  Optional[Stdlib::Host]
-          $docker_host          = undef,
-  Optional[Stdlib::IP::Address]
-          $docker_ipaddr        = undef,
-  Optional[Stdlib::Unixpath]
-          $docker_tlsdir        = undef,
-  Optional[Stdlib::Unixpath]
-          $runner_dir           = undef,
-  Boolean $register             = false,
-  Optional[String]
-          $runner_name          = $name,
-  Optional[String]
-          $runner_description   = $runner_name,
-  Optional[String]
-          $registration_token   = undef,
-  Optional[Array[String]]
-          $runner_tag_list      = undef,
-  Boolean $run_untagged         = true,
-  Boolean $runner_locked        = false,
+  String $compose_service = $name,
+  String $compose_project = 'gitlab',
+  String $docker_image = 'gitlab/gitlab-runner:v15.10.1',
+  Boolean $manage_image = false,
+  Optional[Stdlib::Host] $docker_host = undef,
+  Optional[Stdlib::IP::Address] $docker_ipaddr = undef,
+  Optional[Stdlib::Unixpath] $docker_tlsdir = undef,
+  Optional[Stdlib::Unixpath] $runner_dir = undef,
+  Boolean $register = false,
+  Optional[String] $runner_name = $name,
+  Optional[String] $runner_description = $runner_name,
+  Optional[String] $registration_token = undef,
+  Optional[Array[String]] $runner_tag_list = undef,
+  Boolean $run_untagged = true,
+  Boolean $runner_locked = false,
   Enum['not_protected', 'ref_protected']
-          $runner_access_level  = 'not_protected',
-  Optional[Stdlib::HTTPUrl]
-          $gitlab_url           = undef,
-  Optional[String]
-          $authentication_token = undef,
-  String  $runner_executor      = 'docker',
-  Optional[String]
-          $runner_dokcer_image  = undef,
+  $runner_access_level  = 'not_protected',
+  Optional[Stdlib::HTTPUrl] $gitlab_url = undef,
+  Optional[String] $authentication_token = undef,
+  String $runner_executor = 'docker',
+  Optional[String] $runner_dokcer_image = undef,
 ) {
   include dockerinstall::params
   include gitlabinstall::runner::base
@@ -97,11 +86,11 @@ define gitlabinstall::runner::service (
       'DOCKER_HOST'        => $docker_host_tcp,
     },
     docker_volume      => [
-                        '/etc/docker/certs.d:/etc/docker/certs.d',
-                        '/var/run/docker.sock:/var/run/docker.sock',
-                        "${docker_tlsdir_mount}:/certs/client",
-                        "${persistent_dir}:/etc/gitlab-runner",
-                      ],
+      '/etc/docker/certs.d:/etc/docker/certs.d',
+      '/var/run/docker.sock:/var/run/docker.sock',
+      "${docker_tlsdir_mount}:/certs/client",
+      "${persistent_dir}:/etc/gitlab-runner",
+    ],
     require            => File[$persistent_dir],
   }
 
