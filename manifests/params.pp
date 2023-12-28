@@ -5,10 +5,11 @@
 # @example
 #   include gitlabinstall::params
 class gitlabinstall::params {
+  # https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/?distro=centos&edition=ce
   # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
   $gitlab_version = $facts['os']['release']['major'] ? {
-    '8'     => '15.11.13-ce.0.el8',
-    default => '15.11.13-ce.0.el7',
+    '8'     => '16.1.5-ce.0.el8',
+    default => '16.1.5-ce.0.el7',
   }
 
   # use directory defined by http://nginx.org/packages/
