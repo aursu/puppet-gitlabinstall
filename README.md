@@ -13,19 +13,18 @@
 
 ## Description
 
-This module main goal is to install GitLab and provide ability to intagrate it
-with externally managed Nginx, Postgres and Docker Registry.
+The primary goal of this module is to install GitLab and enable its integration with externally managed Nginx, PostgreSQL, and Docker Registry.
 
 ## Setup
 
-### What gitlabinstall affects **OPTIONAL**
+### What gitlabinstall affects
 
-gitlabinstall installs gitlab-ce Omnibus package from https://packages.gitlab.com/gitlab/gitlab-ce.
-Exact package version should be provided
+The `gitlabinstall` Puppet module installs the gitlab-ce Omnibus package from [packages.gitlab.com/gitlab/gitlab-ce](https://packages.gitlab.com/gitlab/gitlab-ce). The exact package version should be specified.
 
-Also it could manage Nginx setup (non-bundled) and Postgres setup (also non-bundled)
+Additionally, it can manage the setup of Nginx (non-bundled) and PostgreSQL (also non-bundled).
 
-SSL certificates management is also included
+SSL certificates management is also included.
+
 
 ### Setup Requirements
 
@@ -36,7 +35,7 @@ For .fixtures.yml
 ```
 nginx:
   repo: https://github.com/aursu/puppet-nginx.git
-  ref: tags/v3.0.1-rc0.2
+  ref: tags/v5.0.1-1
 ```
 
 and for Puppetfile:
@@ -44,7 +43,7 @@ and for Puppetfile:
 ```
 mod 'nginx',
   :git => 'https://github.com/aursu/puppet-nginx.git',
-  :tag => 'v3.0.1-rc0.2'
+  :tag => 'v5.0.1-1'
 ```
 
 Also requires non-published on Puppet Forge module `aursu::lsys` which is set
