@@ -1,6 +1,6 @@
 {
   "name": "aursu-gitlabinstall",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "author": "aursu",
   "summary": "Dedicated GitLab installation",
   "license": "Apache-2.0",
@@ -14,11 +14,11 @@
     },
     {
       "name": "puppet/gitlab",
-      "version_requirement": ">= 6.0.0 < 9.0.0"
+      "version_requirement": ">= 6.0.0 < 10.0.0"
     },
     {
       "name": "aursu/lsys_postgresql",
-      "version_requirement": ">= 0.47.0 < 1.0.0"
+      "version_requirement": ">= 0.50.1 < 1.0.0"
     },
     {
       "name": "aursu/lsys_nginx",
@@ -26,15 +26,15 @@
     },
     {
       "name": "aursu/nginx",
-      "version_requirement": ">= 2.0.0 < 5.0.0"
+      "version_requirement": ">= 2.0.0 < 6.0.0"
     },
     {
       "name": "puppetlabs/postgresql",
-      "version_requirement": ">= 6.6.0 < 10.0.0"
+      "version_requirement": ">= 6.6.0 < 11.0.0"
     },
     {
       "name": "aursu/puppet",
-      "version_requirement": ">= 0.1.5 < 1.0.0"
+      "version_requirement": ">= 0.19.3 < 1.0.0"
     },
     {
       "name": "puppet/selinux",

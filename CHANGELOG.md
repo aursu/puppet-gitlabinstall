@@ -395,11 +395,11 @@ under module management
 
 **Known Issues**
 
-## Release 1.14.0
+## Release 1.14.1
 
 **Features**
 
-* Added backup feature for configuration and old backyp archives cleanup
+* Added backup feature for configuration and old backup archives cleanup
 
 **Bugfixes**
 
