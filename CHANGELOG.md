@@ -404,3 +404,17 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.15.0
+
+**Features**
+
+* Updated the default Docker image for the runner.
+* Added setup for the `plpgsql` extension and privileges for the `public` schema.
+* Added support for Ubuntu systems in `params` class.
+* Switched to a non-legacy fact for SELinux.
+* Added the proper dependency for `/opt/gitlab` Mount resource.
+
+**Bugfixes**
+
+**Known Issues**

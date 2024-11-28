@@ -5,49 +5,49 @@ fixtures:
   forge_modules:
     concat:
       repo: puppetlabs/concat
-      ref: 9.0.0
+      ref: 9.0.2
     cron_core:
       repo: puppetlabs/cron_core
       puppet_version: ">= 6.0.0"
     dockerinstall:
       repo: aursu/dockerinstall
-      ref: 0.14.1
+      ref: 0.20.1
     gitlab:
       repo: puppet/gitlab
-      ref: 8.1.0
+      ref: 10.1.0
     mount_core:
       repo: puppetlabs/mount_core
       puppet_version: ">= 6.0.0"
     lsys_nginx:
       repo: aursu/lsys_nginx
-      ref: 0.47.0
+      ref: 0.48.0
     nginx:
       repo: aursu/nginx
-      ref: 4.4.2
+      ref: 6.0.2
     lsys_postgresql:
       repo: aursu/lsys_postgresql
-      ref: 0.47.0
+      ref: 0.52.0
     postgresql:
       repo: puppetlabs/postgresql
-      ref: 9.2.0
+      ref: 10.3.0
     puppet:
       repo: aursu/puppet
-      ref: 0.7.1
+      ref: 0.23.0
     selinux:
       repo: puppet/selinux
-      ref: 4.0.0
+      ref: 5.0.0
     stdlib:
       repo: puppetlabs/stdlib
-      ref: 9.3.0
+      ref: 9.6.0
     systemd:
       repo: puppet/systemd
-      ref: 6.0.0
+      ref: 7.1.0
     tlsinfo:
       repo: aursu/tlsinfo
-      ref: 0.3.7
+      ref: 0.8.0
     yumrepo_core:
       repo: puppetlabs/yumrepo_core
       puppet_version: ">= 6.0.0"
     bsys:
       repo: aursu/bsys
-      ref: 0.4.1
+      ref: 0.10.1
