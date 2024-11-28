@@ -22,7 +22,7 @@ describe 'gitlabinstall::runner::service' do
 
       it {
         is_expected.to contain_dockerinstall__composeservice('gitlab/namevar')
-          .with_configuration(%r{^[ ]{4}image: gitlab/gitlab-runner:v15\.10\.1$})
+          .with_configuration(%r{^[ ]{4}image: gitlab/gitlab-runner:v17\.6\.0$})
       }
 
       it {
