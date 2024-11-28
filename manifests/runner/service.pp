@@ -7,7 +7,7 @@
 define gitlabinstall::runner::service (
   String $compose_service = $name,
   String $compose_project = 'gitlab',
-  String $docker_image = 'gitlab/gitlab-runner:v15.10.1',
+  String $docker_image = 'gitlab/gitlab-runner:v17.6.0',
   Boolean $manage_image = false,
   Optional[Stdlib::Host] $docker_host = undef,
   Optional[Stdlib::IP::Address] $docker_ipaddr = undef,
@@ -111,7 +111,7 @@ define gitlabinstall::runner::service (
       environment          => [
         'DOCKER_CERT_PATH=/certs/client',
         'DOCKER_TLS_VERIFY=1',
-        "DOCKER_HOST=${docker_host_tcp}"
+        "DOCKER_HOST=${docker_host_tcp}",
       ],
       docker_volume        => [
         '/cache',
