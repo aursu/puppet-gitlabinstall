@@ -38,6 +38,20 @@ class gitlabinstall::postgres (
       database  => $database_name,
       require   => Postgresql::Server::Db[$database_name],
     }
+
+    postgresql::server::extension { "${database_name}-plpgsql":
+      extension => 'plpgsql',
+      database  => $database_name,
+      require   => Postgresql::Server::Db[$database_name],
+    }
+
+    postgresql::server::grant { "${database_name}:SCHEMA:public:${database_username}":
+      role        => $database_username,
+      db          => $database_name,
+      object_name => 'public',
+      privilege   => 'ALL',
+      object_type => 'SCHEMA',
+    }
   }
 
   # https://docs.gitlab.com/omnibus/settings/database.html#backup-and-restore-a-non-packaged-postgresql-database
