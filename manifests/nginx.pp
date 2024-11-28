@@ -97,7 +97,7 @@ class gitlabinstall::nginx (
         options  => {
           proxy_cache      => $nginx_proxy_cache,
           proxy_cache_path => $nginx_proxy_cache_path,
-        }
+        },
       }
     }
 
@@ -110,7 +110,7 @@ class gitlabinstall::nginx (
         recurse => true,
       }
 
-      if $facts['selinux'] {
+      if $facts['os']['selinux']['enabled'] {
         selinux::fcontext { "${nginx_log_directory}(/.*)?":
           filetype => 'f',
           seltype  => 'httpd_log_t',
@@ -119,7 +119,7 @@ class gitlabinstall::nginx (
         }
 
         selinux::exec_restorecon { $nginx_log_directory:
-          subscribe => Selinux::Fcontext[$nginx_log_directory]
+          subscribe => Selinux::Fcontext[$nginx_log_directory],
         }
       }
 
@@ -137,7 +137,7 @@ class gitlabinstall::nginx (
     members => $nginx_upstream_members,
   }
 
-  if $facts['selinux'] {
+  if $facts['os']['selinux']['enabled'] {
     selinux::fcontext { $gitlab_workhorse_socket:
       filetype => 's',
       seltype  => 'httpd_var_run_t',
@@ -214,17 +214,17 @@ class gitlabinstall::nginx (
       "= ${relative_url}/-/health" => {
         error_pages => {
           '404 500 502' => '/error.txt',
-        }
+        },
       },
       "= ${relative_url}/-/readiness" => {
         error_pages => {
           '404 500 502' => '/error.json',
-        }
+        },
       },
       "= ${relative_url}/-/liveness" => {
         error_pages => {
           '404 500 502' => '/error.json',
-        }
+        },
       },
     }
   }
