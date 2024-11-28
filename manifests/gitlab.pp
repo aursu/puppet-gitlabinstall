@@ -56,6 +56,9 @@
 # @param backup_cleanup_minute
 #   Minute value for the cleanup cron task
 #
+# @param database_max_connections
+#   The value of `max_connections` inside postgresql configuration file
+#
 class gitlabinstall::gitlab (
   String[8] $database_password = $gitlabinstall::database_password,
   String $gitlab_package_ensure = $gitlabinstall::gitlab_package_ensure,
@@ -110,6 +113,8 @@ class gitlabinstall::gitlab (
   # Keep ability to chnage schedule
   String $backup_cleanup_hour = '*/4',
   String $backup_cleanup_minute = '0',
+  # we can pass undef but it would be set into default value from params
+  Optional[Integer] $database_max_connections = $gitlabinstall::params::database_max_connections,
 ) inherits gitlabinstall::params {
   $upstream_edition = $gitlabinstall::params::upstream_edition
   $service_name     = $gitlabinstall::params::service_name
@@ -170,6 +175,7 @@ class gitlabinstall::gitlab (
       database_username => $database_username,
       database_name     => $database_name,
       database_upgrade  => $database_upgrade,
+      max_connections   => $database_max_connections,
       before            => Class['gitlab'],
     }
 

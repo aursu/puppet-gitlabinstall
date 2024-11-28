@@ -15,9 +15,17 @@ class gitlabinstall::postgres (
   String $database_name = $gitlabinstall::params::database_name,
   Boolean $system_tools_setup = $gitlabinstall::pg_tools_setup,
   Boolean $database_upgrade = $gitlabinstall::database_upgrade,
+  Integer $max_connections = $gitlabinstall::params::database_max_connections,
 ) inherits gitlabinstall::params {
   if $manage_service {
     include lsys_postgresql
+
+    # if not equal default value - set it
+    unless $max_connections == $gitlabinstall::params::database_max_connections {
+      postgresql::server::config_entry { 'max_connections':
+        value => $max_connections,
+      }
+    }
   }
 
   unless $database_upgrade {
@@ -45,12 +53,14 @@ class gitlabinstall::postgres (
       require   => Postgresql::Server::Db[$database_name],
     }
 
-    postgresql::server::grant { "${database_name}:SCHEMA:public:${database_username}":
-      role        => $database_username,
-      db          => $database_name,
-      object_name => 'public',
-      privilege   => 'ALL',
-      object_type => 'SCHEMA',
+    if $manage_service and versioncmp($postgresql::globals::globals_version, '15.0') >= 0 {
+      postgresql::server::grant { "${database_name}:SCHEMA:public:${database_username}":
+        role        => $database_username,
+        db          => $database_name,
+        object_name => 'public',
+        privilege   => 'ALL',
+        object_type => 'SCHEMA',
+      }
     }
   }
 

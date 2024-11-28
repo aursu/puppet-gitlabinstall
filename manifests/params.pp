@@ -111,6 +111,9 @@ class gitlabinstall::params {
   $database_name     = 'gitlabhq_production'
   $database_port     = 5432
 
+  # ActiveRecord::ConnectionNotEstablished (connection to server at "127.0.0.1", port 5432 failed: FATAL:  remaining connection slots are reserved for non-replication superuser connections)
+  $database_max_connections = 100
+
   $ssl_settings = {
     'ssl'                         => true,
     'http2'                       => true,

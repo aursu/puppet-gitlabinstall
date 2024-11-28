@@ -405,7 +405,7 @@ under module management
 
 **Known Issues**
 
-## Release 1.15.0
+## Release 1.16.0
 
 **Features**
 
@@ -414,6 +414,7 @@ under module management
 * Added support for Ubuntu systems in `params` class.
 * Switched to a non-legacy fact for SELinux.
 * Added the proper dependency for `/opt/gitlab` Mount resource.
+* Added `max_connections` into postgresql config
 
 **Bugfixes**
 
