@@ -5,15 +5,25 @@
 # @example
 #   include gitlabinstall::params
 class gitlabinstall::params {
-  # https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/?distro=centos&edition=ce
-  # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
-  $gitlab_version = $facts['os']['release']['major'] ? {
-    '8'     => '16.1.5-ce.0.el8',
-    default => '16.1.5-ce.0.el7',
+  $osfam  = $facts['os']['family']
+  $osmaj  = $facts['os']['release']['major']
+
+  case $osfam {
+    'Debian': {
+      $gitlab_version = '17.6.1-ce.0'
+    }
+    'RedHat': {
+      # https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/?distro=centos&edition=ce
+      # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
+      $gitlab_version = "17.6.1-ce.0.el${osmaj}"
+    }
+    default: {
+      $gitlab_version = undef
+    }
   }
 
   # use directory defined by http://nginx.org/packages/
-  $user_shell = $facts['os']['family'] ? {
+  $user_shell = $osfam ? {
     'RedHat' => '/sbin/nologin',
     default  => '/usr/sbin/nologin',
   }
@@ -21,12 +31,12 @@ class gitlabinstall::params {
 
   # Try to use static Uid/Gid (official for RedHat is apache/48 and for
   # Debian is www-data/33)
-  $user_id = $facts['os']['family'] ? {
+  $user_id = $osfam ? {
     'RedHat' => 48,
     default  => 33,
   }
 
-  $user = $facts['os']['family'] ? {
+  $user = $osfam ? {
     'RedHat' => 'apache',
     default  => 'www-data',
   }
@@ -83,7 +93,7 @@ class gitlabinstall::params {
   }
   else {
     # fallback to fqdn
-    $certname = $facts['fqdn']
+    $certname = $facts['networking']['fqdn']
   }
 
   $hostprivkey = "${privatekeydir}/${certname}.pem"
