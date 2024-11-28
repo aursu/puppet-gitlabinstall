@@ -9,17 +9,17 @@ class gitlabinstall::runner (
   String  $docker_image         = 'gitlab/gitlab-runner:v15.10.1',
   Boolean $register_runner      = true,
   Optional[String]
-          $runner_name          = undef,
+  $runner_name          = undef,
   Optional[String]
-          $registration_token   = undef,
+  $registration_token   = undef,
   Optional[String]
-          $authentication_token   = undef,
+  $authentication_token   = undef,
   Optional[Array[String]]
-          $runner_tag_list      = undef,
+  $runner_tag_list      = undef,
   Optional[Stdlib::HTTPUrl]
-          $gitlab_url           = undef,
+  $gitlab_url           = undef,
   Optional[String]
-          $runner_dokcer_image  = 'centos:7',
+  $runner_dokcer_image  = 'quay.io/rockylinux/rockylinux:9.5.20241118',
 ) inherits gitlabinstall::runner::params {
   $compose_service = $gitlabinstall::runner::params::compose_service
   $compose_project = $gitlabinstall::runner::params::compose_project
