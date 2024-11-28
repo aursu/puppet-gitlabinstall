@@ -410,11 +410,17 @@ class gitlabinstall::gitlab (
       creates => '/opt/gitlab',
       before  => Mount['/opt/gitlab'],
     }
+
     mount { '/opt/gitlab':
       ensure => 'mounted',
       device => $mnt_distro,
       fstype => $mnt_distro_fstype,
       before => Class['gitlab'],
+    }
+
+    if $external_postgresql_service {
+      # required to properly create symlinks to postgres tools
+      Mount['/opt/gitlab'] -> Class['gitlabinstall::postgres']
     }
   }
 
@@ -423,6 +429,7 @@ class gitlabinstall::gitlab (
       creates => '/var/opt/gitlab',
       before  => Mount['/var/opt/gitlab'],
     }
+
     mount { '/var/opt/gitlab':
       ensure => 'mounted',
       device => $mnt_data,
@@ -436,6 +443,7 @@ class gitlabinstall::gitlab (
       creates => $artifacts_path,
       before  => Mount[$artifacts_path],
     }
+
     mount { $artifacts_path:
       ensure => 'mounted',
       device => $mnt_artifacts,
