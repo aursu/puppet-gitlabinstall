@@ -424,8 +424,10 @@ under module management
 
 **Features**
 
-* Fixed compatibility with newer nginx Puppet module
+* PDK upgrade
 
 **Bugfixes**
+
+* Fixed compatibility with newer nginx Puppet module
 
 **Known Issues**

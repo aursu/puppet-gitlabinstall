@@ -3,6 +3,9 @@
 ---
 fixtures:
   forge_modules:
+    apt:
+      repo: puppetlabs/apt
+      ref: 10.0.1
     concat:
       repo: puppetlabs/concat
       ref: 9.0.2
