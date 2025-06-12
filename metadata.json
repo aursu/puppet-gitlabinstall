@@ -1,6 +1,6 @@
 {
   "name": "aursu-gitlabinstall",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "author": "aursu",
   "summary": "Dedicated GitLab installation",
   "license": "Apache-2.0",
@@ -26,7 +26,7 @@
     },
     {
       "name": "aursu/nginx",
-      "version_requirement": ">= 2.0.0 < 7.0.0"
+      "version_requirement": ">= 6.0.2 < 7.0.0"
     },
     {
       "name": "puppetlabs/postgresql",
@@ -54,6 +54,20 @@
       "operatingsystem": "CentOS",
       "operatingsystemrelease": [
         "7"
+      ]
+    },
+    {
+      "operatingsystem": "Rocky",
+      "operatingsystemrelease": [
+        "8",
+        "9"
+      ]
+    },
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "22.04",
+        "24.04"
       ]
     }
   ],

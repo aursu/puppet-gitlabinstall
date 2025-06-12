@@ -62,6 +62,30 @@ describe 'gitlabinstall::nginx' do
           }
         end
       end
+
+      context 'with manage_nginx_core => false' do
+        let(:pre_condition) do
+          <<-PRECOND
+          include nginx
+          class { 'gitlabinstall': external_url => 'https://ci.domain.tld' }
+          PRECOND
+        end
+        let(:params) do
+          {
+            manage_service: false,
+          }
+        end
+
+        it {
+          is_expected.to contain_nginx__resource__config('98-gitlab-global-proxy')
+            .with_content(%r{proxy_cache gitlab})
+        }
+
+        it {
+          is_expected.to contain_nginx__resource__config('98-gitlab-global-proxy')
+            .with_content(%r{proxy_cache_path /var/cache/nginx/proxy_cache keys_zone=gitlab:10m max_size=1g levels=1:2 use_temp_path=off})
+        }
+      end
     end
   end
 end

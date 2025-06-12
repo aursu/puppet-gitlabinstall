@@ -10,12 +10,12 @@ class gitlabinstall::params {
 
   case $osfam {
     'Debian': {
-      $gitlab_version = '17.6.1-ce.0'
+      $gitlab_version = '17.10.8-ce.0'
     }
     'RedHat': {
       # https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/?distro=centos&edition=ce
       # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
-      $gitlab_version = "17.6.1-ce.0.el${osmaj}"
+      $gitlab_version = "17.10.8-ce.0.el${osmaj}"
     }
     default: {
       $gitlab_version = undef

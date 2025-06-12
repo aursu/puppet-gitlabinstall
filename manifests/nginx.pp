@@ -91,13 +91,15 @@ class gitlabinstall::nginx (
     File[$nginx_log_directory] -> Nginx::Resource::Server['gitlab-http']
   }
   else {
+    $options = {
+      proxy_cache      => $nginx_proxy_cache,
+      proxy_cache_path => $nginx_proxy_cache_path,
+    }
+
     if $global_proxy_settings {
       nginx::resource::config { '98-gitlab-global-proxy':
-        template => 'gitlabinstall/nginx/conf.d/gitlab-global-proxy.conf.erb',
-        options  => {
-          proxy_cache      => $nginx_proxy_cache,
-          proxy_cache_path => $nginx_proxy_cache_path,
-        },
+        content => template('gitlabinstall/nginx/conf.d/gitlab-global-proxy.conf.erb'),
+        options => $options,
       }
     }
 

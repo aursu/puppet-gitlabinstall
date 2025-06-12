@@ -75,21 +75,21 @@
 class gitlabinstall::external_registry (
   # gitlab_rails['registry_host']
   Stdlib::Fqdn
-          $registry_host                 = $gitlabinstall::registry_host,
+  $registry_host                 = $gitlabinstall::registry_host,
   # gitlab_rails['registry_port']
   Integer $registry_port                 = $gitlabinstall::registry_port,
   # gitlab_rails['registry_api_url']
   Stdlib::HTTPUrl
-          $registry_api_url              = $gitlabinstall::registry_api_url,
+  $registry_api_url              = $gitlabinstall::registry_api_url,
 
   # registry['internal_key'] = "---BEGIN RSA PRIVATE KEY---\nMIIEpQIBAA\n"
   Optional[String]
-          $registry_internal_key         = undef,
+  $registry_internal_key         = undef,
 
   Optional[String]
-          $registry_internal_certificate = undef,
+  $registry_internal_certificate = undef,
   Optional[Stdlib::Unixpath]
-          $registry_cert_path            = undef,
+  $registry_cert_path            = undef,
 
   Boolean $registry_cert_export          = true,
   Boolean $token_map_export              = true,
@@ -98,9 +98,9 @@ class gitlabinstall::external_registry (
   # Token settings
   String  $token_username                = 'registry-bot',
   Optional[String]
-          $token_expire_time             = undef,
+  $token_expire_time             = undef,
   Optional[Integer]
-          $token_expire_threshold        = undef,
+  $token_expire_threshold        = undef,
 
   String  $jwt_gem_version               = 'installed',
 ) inherits gitlabinstall::params {
@@ -150,15 +150,15 @@ class gitlabinstall::external_registry (
   file {
     default:
       ensure  => directory,
-    ;
+      ;
     $registry_path:
       owner => 'git',
       group => 'git',
-    ;
+      ;
     $registry_dir:
       owner => 'root',
       group => 'root',
-    ;
+      ;
   }
 
   $gitlab_rails = {
@@ -176,10 +176,10 @@ class gitlabinstall::external_registry (
     default:
       ensure   => 'installed',
       provider => 'puppet_gem',
-    ;
+      ;
     'jwt':
       ensure => $jwt_gem_version,
-    ;
+      ;
     'base32': ;
   }
 

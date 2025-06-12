@@ -419,3 +419,13 @@ under module management
 **Bugfixes**
 
 **Known Issues**
+
+## Release 1.17.0
+
+**Features**
+
+* Fixed compatibility with newer nginx Puppet module
+
+**Bugfixes**
+
+**Known Issues**
