@@ -420,11 +420,12 @@ under module management
 
 **Known Issues**
 
-## Release 1.17.0
+## Release 1.18.0
 
 **Features**
 
 * PDK upgrade
+* Switch to openid_connect_signing_key instead of gitlab-registry.key
 
 **Bugfixes**
 
