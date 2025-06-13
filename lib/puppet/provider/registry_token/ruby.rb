@@ -2,6 +2,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', '..', '..'))
 require 'puppet_x/gitlabinstall/token_tools'
 require 'time'
 require 'openssl'
+require 'json'
 
 Puppet::Type.type(:registry_token).provide(:ruby) do
   @doc = 'Registry auth token provider'
@@ -18,6 +19,32 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
                 end
 
   REGISTRY_KEY = '/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key'.freeze
+  SECRETS_FILE = '/etc/gitlab/gitlab-secrets.json'.freeze
+
+  require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
+  require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
+
+  class RSATokenHelper < JSONWebToken::RSAToken
+    # New constructor that accepts key content instead of file path
+    def initialize(key_data)
+      # Call parent constructor (`RSAToken`) passing `nil` as file path.
+      # It will call `Token` constructor to initialize payload,
+      # and then just set `@key_file = nil`
+      super(nil)
+
+      # Directly set key content to instance variable
+      @key_data = key_data
+    end
+
+    private
+
+    # Override parent class `key_data` method.
+    # Now it will return our stored data
+    # instead of trying to read file from non-existent path (`@key_file` which is `nil`)
+    def key_data
+      @key_data
+    end
+  end
 
   def initialize(value = {})
     super(value)
@@ -25,6 +52,22 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   mk_resource_methods
+
+  def self.get_key_data
+    # Try to get the key from secrets file
+    if File.exist?(SECRETS_FILE)
+      begin
+        gitlab_secrets = JSON.parse(File.read(SECRETS_FILE))
+        key_content = gitlab_secrets&.dig('gitlab_rails', 'openid_connect_signing_key')
+        return key_content if key_content
+      rescue # Ignore parsing errors and continue
+      end
+    end
+
+    # If unable to get key from secrets, read and return
+    # content of the default path file
+    File.read(REGISTRY_KEY)
+  end
 
   def self.normalize_project_scope(scope)
     Puppet_X::GitlabInstall.normalize_project_scope(scope)
@@ -91,7 +134,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   # decrypt raw token data using registry private key
   def self.token_decrypt(token)
-    pkey = File.read(REGISTRY_KEY)
+    pkey = get_key_data
     secret = OpenSSL::PKey::RSA.new(pkey).public_key
 
     JWT.decode(token, secret, true, algorithm: 'RS256')
@@ -121,10 +164,11 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def authorized_token
-    require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
-    require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
+    # 1. Get key content
+    key_data = self.class.get_key_data
 
-    JSONWebToken::RSAToken.new(REGISTRY_KEY).tap do |token|
+    # 2. Create instance of our new helper, passing the key content
+    RSATokenHelper.new(key_data).tap do |token|
       token.issuer      = @resource[:issuer]
       token.audience    = @resource[:audience]
       token.subject     = @resource[:subject]
