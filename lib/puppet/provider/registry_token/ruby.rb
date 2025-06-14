@@ -292,11 +292,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     return @token if @token
 
     token = self.class.token_data(target_path)
-    @token = if token.empty?
-               {}
-             else
-               token
-             end
+    @token = token.empty? ? {} : token
   end
 
   def token_content
