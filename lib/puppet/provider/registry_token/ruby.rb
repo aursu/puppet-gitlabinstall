@@ -265,24 +265,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     @resource[:access].flatten.compact
   end
 
-  def authorized_token
-    # 1. Get key content
-    key_data = self.class.get_key_data
-
-    # 2. Create instance of our new helper, passing the key content
-    RSATokenHelper.new(key_data).tap do |token|
-      token.issuer      = @resource[:issuer]
-      token.audience    = @resource[:audience]
-      token.subject     = @resource[:subject]
-      token.expire_time = expire_time
-      token[:access]    = resource_access || []
-      token[:jti]       = @resource[:id]
-      token[:iat]       = @resource[:issued_at].to_i
-      token[:nbf]       = @resource[:not_before].to_i
-      token[:auth_type] = 'gitlab_or_ldap'
-    end
-  end
-
   def target_path
     target = @resource[:target] || 'token.json'
     "/etc/docker/registry/#{target}"
@@ -300,8 +282,25 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def generate_content
-    content = { 'token' => authorized_token.encoded }
-    content['access'] = resource_access
+    access = resource_access
+
+    key_data = self.class.get_key_data
+
+    token_helper = RSATokenHelper.new(key_data).tap do |token|
+      token.issuer      = @resource[:issuer]
+      token.audience    = @resource[:audience]
+      token.subject     = @resource[:subject]
+      token.expire_time = expire_time
+      token[:jti]       = @resource[:id]
+      token[:iat]       = @resource[:issued_at].to_i
+      token[:nbf]       = @resource[:not_before].to_i
+      token[:access]    = access || []
+      token[:auth_type] = 'gitlab_or_ldap'
+    end
+
+    # Generate the final content hash
+    content = { 'token' => token_helper.encoded }
+    content['access'] = access
 
     @content = content.to_json
   end
