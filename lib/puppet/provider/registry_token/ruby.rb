@@ -3,12 +3,12 @@ require 'puppet_x/gitlabinstall/token_tools'
 require 'time'
 require 'openssl'
 require 'json'
+require 'base64'
+require 'securerandom'
 
 Puppet::Type.type(:registry_token).provide(:ruby) do
   @doc = 'Registry auth token provider'
 
-  confine exists: '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
-  confine exists: '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
   confine true: begin
                   require 'jwt'
                   require 'base32'
@@ -21,28 +21,138 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   REGISTRY_KEY = '/var/opt/gitlab/gitlab-rails/etc/gitlab-registry.key'.freeze
   SECRETS_FILE = '/etc/gitlab/gitlab-secrets.json'.freeze
 
-  require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/token.rb'
-  require '/opt/gitlab/embedded/service/gitlab-rails/lib/json_web_token/rsa_token.rb'
+  # This class generates a JWT signed with an RSA private key.
+  class RSATokenHelper
+    # The signing algorithm to use for all tokens.
+    ALGORITHM = 'RS256'
+    DEFAULT_NOT_BEFORE_TIME = 5
+    DEFAULT_EXPIRE_TIME = 60
 
-  class RSATokenHelper < JSONWebToken::RSAToken
+    attr_accessor :id, :audience, :subject, :issuer
+    attr_accessor :issued_at, :not_before, :expire_time
+
     # New constructor that accepts key content instead of file path
     def initialize(key_data)
-      # Call parent constructor (`RSAToken`) passing `nil` as file path.
-      # It will call `Token` constructor to initialize payload,
-      # and then just set `@key_file = nil`
-      super(nil)
-
       # Directly set key content to instance variable
       @key_data = key_data
+
+      @id = SecureRandom.uuid
+      @issued_at = Time.now
+      # we give a few seconds for time shift
+      @not_before = issued_at - DEFAULT_NOT_BEFORE_TIME
+      # default 60 seconds should be more than enough for this authentication token
+      @expire_time = issued_at + DEFAULT_EXPIRE_TIME
+      @custom_payload = {}
+    end
+
+    def [](key)
+      @custom_payload[key]
+    end
+
+    def []=(key, value)
+      @custom_payload[key] = value
+    end
+
+    def payload
+      predefined_claims
+        .merge(@custom_payload)
+        .merge(default_payload)
+    end
+
+    # Generates the final, signed JWT string.
+    #
+    # @return [String] The encoded JWT.
+    def encoded
+      headers = { kid: kid, typ: 'JWT' }
+      JWT.encode(payload, key, ALGORITHM, headers)
+    end
+
+    # Decodes and verifies a JWT using a public key.
+    #
+    # @param token [String] The JWT string to decode.
+    # @param public_key [OpenSSL::PKey::RSA] The public key for verification.
+    # @return [Array] The decoded payload and header.
+    def self.decode(token, public_key)
+      options = { algorithm: ALGORITHM }
+      JWT.decode(token, public_key, true, options)
     end
 
     private
+    def predefined_claims
+      {}
+    end
 
-    # Override parent class `key_data` method.
-    # Now it will return our stored data
-    # instead of trying to read file from non-existent path (`@key_file` which is `nil`)
+    def default_payload
+      {
+        jti: id,
+        aud: audience,
+        sub: subject,
+        iss: issuer,
+        iat: issued_at.to_i,
+        nbf: not_before.to_i,
+        exp: expire_time.to_i
+      }.compact
+    end
+
     def key_data
       @key_data
+    end
+
+    # Creates an OpenSSL RSA key object from the raw key data.
+    def key
+      @key ||= OpenSSL::PKey::RSA.new(key_data)
+    end
+
+    # Extracts the public key from the private key object.
+    def public_key
+      key.public_key
+    end
+
+    # Generates a canonical representation of the JWK for thumbprint calculation.
+    #
+    # @see https://tools.ietf.org/html/rfc7638 JWK Thumbprint RFC
+    #
+    # The JWK Thumbprint specification (RFC 7638) requires a key to be
+    # "normalized" before it is hashed. This process ensures that a thumbprint
+    # is stable and verifiable across different systems and implementations.
+    #
+    # Normalization achieves two primary goals:
+    #   1.  **Strips Non-Essential Data:** It includes *only* the required public
+    #       components of the key (e.g., 'kty', 'n', 'e' for an RSA key),
+    #       ignoring any private components or other optional parameters.
+    #   2.  **Enforces Order:** It orders the keys of the components alphabetically.
+    #
+    # This guarantees that the exact same cryptographic key will always produce
+    # the exact same JSON output, which in turn results in a consistent and
+    # predictable thumbprint.
+    #
+    # @return [Hash] A new hash containing only the alphabetized, essential members of the JWK.
+    def normalize_key
+      # Get the required public key components (modulus 'n' and exponent 'e').
+      # These are OpenSSL::BN (BigNum) objects.
+      n = public_key.n
+      e = public_key.e
+
+      # canonical representation of the public key in JSON format
+      {
+        e: Base64.urlsafe_encode64(e.to_s(2), padding: false),
+        kty: 'RSA',
+        n: Base64.urlsafe_encode64(n.to_s(2), padding: false)
+      }
+    end
+
+    # Calculates the JWK Thumbprint as per RFC 7638.
+    def thumbprint
+      # Hash it using SHA-256
+      digest = OpenSSL::Digest::SHA256.new
+
+      # Encode hash in Base64url - this is the correct kid
+      Base64.urlsafe_encode64(digest.digest(normalize_key.to_json), padding: false)
+    end
+
+    # Generates the JWK Thumbprint to use as the Key ID (`kid`).
+    def kid
+      thumbprint
     end
   end
 
