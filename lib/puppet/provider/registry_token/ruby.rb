@@ -24,12 +24,11 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   # This class generates a JWT signed with an RSA private key.
   class RSATokenHelper
     # The signing algorithm to use for all tokens.
-    ALGORITHM = 'RS256'
-    DEFAULT_NOT_BEFORE_TIME = 5
-    DEFAULT_EXPIRE_TIME = 60
+    ALGORITHM = 'RS256'.freeze
 
-    attr_accessor :id, :audience, :subject, :issuer
-    attr_accessor :issued_at, :not_before, :expire_time
+    # Only create setters for attributes that are actually written to from outside.
+    attr_reader :id, :issued_at, :not_before
+    attr_accessor :audience, :subject, :issuer, :expire_time
 
     # New constructor that accepts key content instead of file path
     def initialize(key_data)
@@ -37,11 +36,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
       @key_data = key_data
 
       @id = SecureRandom.uuid
-      @issued_at = Time.now
-      # we give a few seconds for time shift
-      @not_before = issued_at - DEFAULT_NOT_BEFORE_TIME
-      # default 60 seconds should be more than enough for this authentication token
-      @expire_time = issued_at + DEFAULT_EXPIRE_TIME
       @custom_payload = {}
     end
 
@@ -53,10 +47,10 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
       @custom_payload[key] = value
     end
 
+    # Merging the custom payload last ensures that values from the Puppet
+    # resource always take precedence.
     def payload
-      predefined_claims
-        .merge(@custom_payload)
-        .merge(default_payload)
+      default_payload.merge(@custom_payload)
     end
 
     # Generates the final, signed JWT string.
@@ -65,6 +59,10 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     def encoded
       headers = { kid: kid, typ: 'JWT' }
       JWT.encode(payload, key, ALGORITHM, headers)
+    end
+
+    def decode(token)
+      self.class.decode(token, public_key)
     end
 
     # Decodes and verifies a JWT using a public key.
@@ -78,9 +76,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     end
 
     private
-    def predefined_claims
-      {}
-    end
 
     def default_payload
       {
@@ -88,9 +83,9 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
         aud: audience,
         sub: subject,
         iss: issuer,
-        iat: issued_at.to_i,
-        nbf: not_before.to_i,
-        exp: expire_time.to_i
+        iat: issued_at&.to_i,
+        nbf: not_before&.to_i,
+        exp: expire_time&.to_i
       }.compact
     end
 
@@ -143,11 +138,11 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
     # Calculates the JWK Thumbprint as per RFC 7638.
     def thumbprint
-      # Hash it using SHA-256
-      digest = OpenSSL::Digest::SHA256.new
+      normalized_json = normalize_key.to_json
 
-      # Encode hash in Base64url - this is the correct kid
-      Base64.urlsafe_encode64(digest.digest(normalize_key.to_json), padding: false)
+      # Hash it using SHA-256
+      digest = OpenSSL::Digest::SHA256.digest(normalized_json)
+      Base64.urlsafe_encode64(digest, padding: false)
     end
 
     # Generates the JWK Thumbprint to use as the Key ID (`kid`).
@@ -170,7 +165,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
         gitlab_secrets = JSON.parse(File.read(SECRETS_FILE))
         key_content = gitlab_secrets&.dig('gitlab_rails', 'openid_connect_signing_key')
         return key_content if key_content
-      rescue # Ignore parsing errors and continue
+      rescue JSON::ParserError, SystemCallError # Catch expected errors only
       end
     end
 
@@ -244,10 +239,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   # decrypt raw token data using registry private key
   def self.token_decrypt(token)
-    pkey = get_key_data
-    secret = OpenSSL::PKey::RSA.new(pkey).public_key
-
-    JWT.decode(token, secret, true, algorithm: 'RS256')
+    RSATokenHelper.new(get_key_data).decode(token)
   rescue OpenSSL::PKey::RSAError => e
     Puppet.warning(_('Can not create RSA PKey object (%{message})') % { message: e.message })
     []
