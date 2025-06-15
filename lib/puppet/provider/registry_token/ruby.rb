@@ -26,7 +26,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     ALGORITHM = 'RS256'.freeze
 
     # Only create setters for attributes that are actually written to from outside.
-    attr_reader :id, :issued_at, :not_before
+    attr_reader :id, :issued_at, :not_before, :key_data
     attr_accessor :audience, :subject, :issuer, :expire_time
 
     # New constructor that accepts key content instead of file path
@@ -86,10 +86,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
         nbf: not_before&.to_i,
         exp: expire_time&.to_i
       }.compact
-    end
-
-    def key_data
-      @key_data
     end
 
     # Creates an OpenSSL RSA key object from the raw key data.
@@ -157,7 +153,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   mk_resource_methods
 
-def self.get_key_data
+  def self.get_key_data
     # DEPRECATED: Using the private key from gitlab-secrets.json is problematic here.
     # The container registry's 'rootcertbundle' setting requires a public certificate,
     # which cannot be directly derived from the private key stored in gitlab-secrets.json.
