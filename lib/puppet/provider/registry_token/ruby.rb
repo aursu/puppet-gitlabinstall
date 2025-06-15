@@ -157,10 +157,16 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   mk_resource_methods
 
-  def self.get_key_data
-    # This is bad idea because REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE should contain appropriate certificate
-    # and it is not possible to get it from gitlab-secrets.json
-    # TODO: use gitlab_rails.openid_connect_signing_key from gitlab-secrets.json and handle proper set for JWKS
+def self.get_key_data
+    # DEPRECATED: Using the private key from gitlab-secrets.json is problematic here.
+    # The container registry's 'rootcertbundle' setting requires a public certificate,
+    # which cannot be directly derived from the private key stored in gitlab-secrets.json.
+    #
+    # TODO: The ideal solution is to stop using the static REGISTRY_KEY. Instead, this provider
+    # should ensure the registry is configured to use a JWKS file and then fetch the keys
+    # from the GitLab OIDC discovery endpoint, which is typically:
+    # https://gitlab.example.com/oauth/discovery/keys
+    #
     # if File.exist?(SECRETS_FILE)
     #   begin
     #     gitlab_secrets = JSON.parse(File.read(SECRETS_FILE))
@@ -170,8 +176,8 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
     #   end
     # end
 
-    # If unable to get key from secrets, read and return
-    # content of the default path file
+    # Fallback to reading the key directly from the default path. This is the
+    # current behavior until the TODO above is implemented.
     File.read(REGISTRY_KEY)
   end
 
