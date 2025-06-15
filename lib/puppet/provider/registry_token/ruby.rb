@@ -158,15 +158,17 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   mk_resource_methods
 
   def self.get_key_data
-    # Try to get the key from secrets file
-    if File.exist?(SECRETS_FILE)
-      begin
-        gitlab_secrets = JSON.parse(File.read(SECRETS_FILE))
-        key_content = gitlab_secrets&.dig('gitlab_rails', 'openid_connect_signing_key')
-        return key_content if key_content
-      rescue JSON::ParserError, SystemCallError # Catch expected errors only
-      end
-    end
+    # This is bad idea because REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE should contain appropriate certificate
+    # and it is not possible to get it from gitlab-secrets.json
+    # TODO: use gitlab_rails.openid_connect_signing_key from gitlab-secrets.json and handle proper set for JWKS
+    # if File.exist?(SECRETS_FILE)
+    #   begin
+    #     gitlab_secrets = JSON.parse(File.read(SECRETS_FILE))
+    #     key_content = gitlab_secrets&.dig('gitlab_rails', 'openid_connect_signing_key')
+    #     return key_content if key_content
+    #   rescue JSON::ParserError, SystemCallError # Catch expected errors only
+    #   end
+    # end
 
     # If unable to get key from secrets, read and return
     # content of the default path file
