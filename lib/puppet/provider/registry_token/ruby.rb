@@ -11,7 +11,6 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   confine true: begin
                   require 'jwt'
-                  require 'base32'
                 rescue LoadError
                   false
                 else

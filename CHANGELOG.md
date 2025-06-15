@@ -420,7 +420,7 @@ under module management
 
 **Known Issues**
 
-## Release 1.18.0
+## Release 1.19.0
 
 **Features**
 
@@ -430,5 +430,18 @@ under module management
 **Bugfixes**
 
 * Fixed compatibility with newer nginx Puppet module
+
+**Known Issues**
+
+## Release 1.19.0
+
+**Features**
+
+* Switched to standard JWK Thumbprint for Key IDs
+* Centralized all JWT creation and decoding logic into the RSATokenHelper class
+
+**Bugfixes**
+
+* Removed dependency on GitLab code
 
 **Known Issues**
