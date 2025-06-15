@@ -261,7 +261,7 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def resource_access
-    return nil unless @resource[:access]
+    return [] unless @resource[:access]
     @resource[:access].flatten.compact
   end
 
@@ -282,15 +282,15 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
   end
 
   def generate_content
-    access = resource_access
+    access = @property_flush[:access] || resource_access
 
     key_data = self.class.get_key_data
 
     token_helper = RSATokenHelper.new(key_data).tap do |token|
-      token.issuer      = @resource[:issuer]
-      token.audience    = @resource[:audience]
-      token.subject     = @resource[:subject]
-      token.expire_time = expire_time
+      token.issuer      = @property_flush[:issuer]      || @resource[:issuer]
+      token.audience    = @property_flush[:audience]    || @resource[:audience]
+      token.subject     = @property_flush[:subject]     || @resource[:subject]
+      token.expire_time = @property_flush[:expire_time] || expire_time
       token[:jti]       = @resource[:id]
       token[:iat]       = @resource[:issued_at].to_i
       token[:nbf]       = @resource[:not_before].to_i
@@ -322,6 +322,8 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
     current = Time.now.to_i
     exp = current + threshold
+
+    Puppet.debug("exp_insync?: expire_time=#{is}, now=#{current}, threshold=#{threshold}, now+threshold=#{exp}")
 
     (is > exp)
   end
@@ -374,6 +376,9 @@ Puppet::Type.type(:registry_token).provide(:ruby) do
 
   def flush
     return if @property_flush.empty?
+
+    @token   = nil
+    @content = nil
 
     generate_content
     store_content
