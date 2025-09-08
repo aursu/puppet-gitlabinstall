@@ -158,6 +158,10 @@ See REFERENCE.md
 
 ## Limitations
 
+```
+/usr/pgsql-15/bin/psql -d gitlabhq_production -p 5432 -t -X -c "GRANT ALL ON SCHEMA public TO gitlab;"
+```
+
 ## Development
 
 ## Release Notes/Contributors/Etc. **Optional**
