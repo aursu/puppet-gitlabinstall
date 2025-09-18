@@ -60,6 +60,7 @@ class gitlabinstall::postgres (
       object_name => 'public',
       privilege   => 'ALL',
       object_type => 'SCHEMA',
+      require     => Postgresql::Server::Db[$database_name],
     }
   }
 
