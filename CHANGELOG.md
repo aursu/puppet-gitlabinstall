@@ -433,7 +433,7 @@ under module management
 
 **Known Issues**
 
-## Release 1.19.1
+## Release 1.19.2
 
 **Features**
 
@@ -443,5 +443,6 @@ under module management
 **Bugfixes**
 
 * Removed dependency on GitLab code
+* run 'GRANT ALL ON SCHEMA public TO gitlab' unconditionally
 
 **Known Issues**
