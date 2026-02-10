@@ -68,6 +68,8 @@ class gitlabinstall::ssl (
       # we use Hiera for certificate/private key storage
       tlsinfo::certpair { $cert_lookupkey:
         identity => true,
+        # in case of self signed or internal CA
+        strict   => false,
       }
     }
   }

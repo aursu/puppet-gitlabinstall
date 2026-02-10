@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## Release 1.19.3
+
+**Bugfixes**
+
+* Fixed SSL certificate validation error for internal/self-signed CA certificates
+  Added `strict => false` parameter to `tlsinfo::certpair` when using `cert_identity` lookup
+  This allows certificates signed by internal CAs to work without strict Root CA validation
+
 ## Release 1.0.2
 
 **Features**
