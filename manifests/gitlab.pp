@@ -363,7 +363,7 @@ class gitlabinstall::gitlab (
       'backup_upload_remote_directory' => $backup_upload_remote_directory,
     }
 
-    if $backup_multipart_chunk_size =~ NotUndef {
+    if $backup_multipart_chunk_size {
       $gitlab_rails_backup_upload = $gitlab_rails_backup_upload_base + {
         'backup_multipart_chunk_size' => $backup_multipart_chunk_size,
       }
