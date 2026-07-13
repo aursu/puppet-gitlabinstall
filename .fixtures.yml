@@ -17,7 +17,7 @@ fixtures:
       ref: 0.20.1
     gitlab:
       repo: puppet/gitlab
-      ref: 10.1.0
+      ref: 11.0.0
     mount_core:
       repo: puppetlabs/mount_core
       puppet_version: ">= 6.0.0"

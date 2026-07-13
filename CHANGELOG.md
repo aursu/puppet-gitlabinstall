@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## Release 1.20.0
+
+**Features**
+
+* Added GitLab native backup upload to S3-compatible storage — new `backup_upload_enable` / `backup_upload_connection` / `backup_upload_remote_directory` parameters set `gitlab_rails['backup_upload_connection']` + `backup_upload_remote_directory`, so `gitlab-backup create` uploads the tar to S3/MinIO with no extra tooling (no `mc`, no Docker) on the GitLab host
+* Raised the `puppet/gitlab` dependency to `< 12.0.0` (supports the 11.x line) and updated `.fixtures.yml` to test against 11.0.0
+
+**Bugfixes**
+
+**Known Issues**
+
 ## Release 1.19.3
 
 **Bugfixes**
