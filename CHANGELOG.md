@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## Release 1.21.0
+
+**Features**
+
+* Added `backup_multipart_chunk_size` parameter (bytes) for the native backup upload — when set it emits `gitlab_rails['backup_multipart_chunk_size']`, so `gitlab-backup create` uploads the archive to S3 in multipart chunks instead of a single PUT. Useful when the destination (or a reverse proxy in front of it) caps request body size, or when the archive exceeds the 5 GB single-object limit. Undef leaves GitLab's default.
+
+**Bugfixes**
+
+**Known Issues**
+
 ## Release 1.20.0
 
 **Features**
