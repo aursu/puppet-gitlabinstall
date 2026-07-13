@@ -77,6 +77,11 @@
 # @param backup_upload_remote_directory
 #   Destination bucket for uploaded backups
 #
+# @param backup_multipart_chunk_size
+#   Multipart chunk size in bytes for the backup upload; set it when the
+#   destination (or a proxy in front of it) caps request body size so the
+#   archive is uploaded in parts. Undef leaves GitLab's default.
+#
 class gitlabinstall (
   String  $gitlab_package_ensure       = $gitlabinstall::params::gitlab_version,
   Stdlib::HTTPUrl
@@ -132,6 +137,8 @@ class gitlabinstall (
   Hash    $backup_upload_connection    = {},
   Optional[String]
           $backup_upload_remote_directory = undef,
+  Optional[Integer]
+          $backup_multipart_chunk_size = undef,
 
 ) inherits gitlabinstall::params {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation

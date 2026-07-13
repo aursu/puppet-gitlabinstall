@@ -68,6 +68,12 @@
 # @param backup_upload_remote_directory
 #   Destination bucket for uploaded backups
 #
+# @param backup_multipart_chunk_size
+#   Multipart chunk size in bytes for the backup upload (gitlab_rails
+#   `backup_multipart_chunk_size`). Set this when the destination or the
+#   network path in front of it limits request body size, so fog uploads the
+#   archive in parts instead of a single PUT. Undef leaves GitLab's default.
+#
 class gitlabinstall::gitlab (
   String[8] $database_password = $gitlabinstall::database_password,
   String $gitlab_package_ensure = $gitlabinstall::gitlab_package_ensure,
@@ -126,6 +132,7 @@ class gitlabinstall::gitlab (
   Boolean $backup_upload_enable = $gitlabinstall::backup_upload_enable,
   Hash    $backup_upload_connection = $gitlabinstall::backup_upload_connection,
   Optional[String] $backup_upload_remote_directory = $gitlabinstall::backup_upload_remote_directory,
+  Optional[Integer] $backup_multipart_chunk_size = $gitlabinstall::backup_multipart_chunk_size,
   # we can pass undef but it would be set into default value from params
   Optional[Integer] $database_max_connections = $gitlabinstall::params::database_max_connections,
 ) inherits gitlabinstall::params {
@@ -351,9 +358,18 @@ class gitlabinstall::gitlab (
   }
 
   if $backup_upload_enable {
-    $gitlab_rails_backup_upload = {
+    $gitlab_rails_backup_upload_base = {
       'backup_upload_connection'       => $backup_upload_connection,
       'backup_upload_remote_directory' => $backup_upload_remote_directory,
+    }
+
+    if $backup_multipart_chunk_size =~ NotUndef {
+      $gitlab_rails_backup_upload = $gitlab_rails_backup_upload_base + {
+        'backup_multipart_chunk_size' => $backup_multipart_chunk_size,
+      }
+    }
+    else {
+      $gitlab_rails_backup_upload = $gitlab_rails_backup_upload_base
     }
   }
   else {
