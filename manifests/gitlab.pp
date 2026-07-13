@@ -59,6 +59,15 @@
 # @param database_max_connections
 #   The value of `max_connections` inside postgresql configuration file
 #
+# @param backup_upload_enable
+#   Enable GitLab native backup upload to S3-compatible storage
+#
+# @param backup_upload_connection
+#   fog/AWS connection hash for backup upload (provider, region, endpoint, keys, path_style)
+#
+# @param backup_upload_remote_directory
+#   Destination bucket for uploaded backups
+#
 class gitlabinstall::gitlab (
   String[8] $database_password = $gitlabinstall::database_password,
   String $gitlab_package_ensure = $gitlabinstall::gitlab_package_ensure,
@@ -113,6 +122,10 @@ class gitlabinstall::gitlab (
   # Keep ability to chnage schedule
   String $backup_cleanup_hour = '*/4',
   String $backup_cleanup_minute = '0',
+  # Backup upload to S3-compatible storage (native gitlab-backup upload)
+  Boolean $backup_upload_enable = $gitlabinstall::backup_upload_enable,
+  Hash    $backup_upload_connection = $gitlabinstall::backup_upload_connection,
+  Optional[String] $backup_upload_remote_directory = $gitlabinstall::backup_upload_remote_directory,
   # we can pass undef but it would be set into default value from params
   Optional[Integer] $database_max_connections = $gitlabinstall::params::database_max_connections,
 ) inherits gitlabinstall::params {
@@ -337,6 +350,16 @@ class gitlabinstall::gitlab (
     }
   }
 
+  if $backup_upload_enable {
+    $gitlab_rails_backup_upload = {
+      'backup_upload_connection'       => $backup_upload_connection,
+      'backup_upload_remote_directory' => $backup_upload_remote_directory,
+    }
+  }
+  else {
+    $gitlab_rails_backup_upload = {}
+  }
+
   file { $log_dir:
     ensure => directory,
   }
@@ -354,6 +377,7 @@ class gitlabinstall::gitlab (
     $gitlab_rails_monitoring_whitelist +
     $gitlab_rails_ldap +
     $gitlab_rails_smtp +
+    $gitlab_rails_backup_upload +
     $gitlab_rails_artifacts,
     registry                     => $gitlab_registry,
     nginx                        => $nginx,

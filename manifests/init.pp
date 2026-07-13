@@ -68,6 +68,15 @@
 # @param database_upgrade
 #   Avoid Postgres resources management when PostgreSQL is updating
 #
+# @param backup_upload_enable
+#   Enable GitLab native backup upload to S3-compatible storage
+#
+# @param backup_upload_connection
+#   fog/AWS connection hash for backup upload (provider, region, endpoint, keys, path_style)
+#
+# @param backup_upload_remote_directory
+#   Destination bucket for uploaded backups
+#
 class gitlabinstall (
   String  $gitlab_package_ensure       = $gitlabinstall::params::gitlab_version,
   Stdlib::HTTPUrl
@@ -118,6 +127,11 @@ class gitlabinstall (
   Integer $backup_cron_minute          = 0,
   Array[String]
           $backup_cron_skips           = ['builds', 'artifacts'],
+  # Native backup upload to S3-compatible storage (see gitlabinstall::backup_upload)
+  Boolean $backup_upload_enable        = false,
+  Hash    $backup_upload_connection    = {},
+  Optional[String]
+          $backup_upload_remote_directory = undef,
 
 ) inherits gitlabinstall::params {
   # extract GitLab hostname from its sexternal_url (see Omnibus installation
