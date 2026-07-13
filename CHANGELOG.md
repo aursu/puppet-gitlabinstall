@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Release 1.21.1
+
+**Bugfixes**
+
+* Simplified the backup upload multipart guard to plain Puppet truthiness (`if $backup_multipart_chunk_size`) instead of a redundant `=~ NotUndef` match. No behavior change — for the `Optional[Integer]` value both treat only `undef` as "unset".
+
 ## Release 1.21.0
 
 **Features**
